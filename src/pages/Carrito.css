@@ -1,0 +1,170 @@
+/* Estilos responsive para el Carrito */
+
+/* Desktop first - ya está definido en los estilos inline */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+  .carrito-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .carrito-summary-column {
+    position: static !important;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .carrito-item-image {
+    width: 100px !important;
+    height: 100px !important;
+  }
+}
+
+/* Móviles */
+@media (max-width: 768px) {
+  .carrito-content {
+    padding: 16px !important;
+    padding-bottom: 100px !important;
+  }
+
+  .carrito-title {
+    font-size: 24px !important;
+  }
+
+  .carrito-restaurant-emoji {
+    font-size: 36px !important;
+  }
+
+  .carrito-restaurant-name {
+    font-size: 18px !important;
+  }
+
+  .carrito-item-card {
+    padding: 16px !important;
+  }
+
+  .carrito-item-content {
+    flex-direction: column !important;
+  }
+
+  .carrito-item-image {
+    width: 100% !important;
+    height: 200px !important;
+    max-width: 100% !important;
+  }
+
+  .carrito-item-name {
+    font-size: 16px !important;
+  }
+
+  .carrito-item-actions {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .carrito-item-footer {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+
+  .carrito-summary-card {
+    padding: 20px !important;
+  }
+
+  .carrito-checkout-button {
+    padding: 14px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+  .carrito-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .carrito-title {
+    font-size: 20px !important;
+  }
+
+  .carrito-clear-button {
+    align-self: flex-end;
+  }
+
+  .carrito-restaurant-banner {
+    padding: 16px !important;
+  }
+
+  .carrito-empty-icon {
+    font-size: 60px !important;
+  }
+
+  .carrito-empty-title {
+    font-size: 22px !important;
+  }
+
+  .carrito-item-card {
+    padding: 12px !important;
+  }
+
+  .carrito-quantity-control {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .carrito-summary-card {
+    padding: 16px !important;
+  }
+
+  .carrito-total-value {
+    font-size: 20px !important;
+  }
+}
+
+/* Animaciones adicionales */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Modo oscuro (opcional para futuro) */
+@media (prefers-color-scheme: dark) {
+  /* Aquí puedes agregar estilos para modo oscuro si lo implementas */
+}

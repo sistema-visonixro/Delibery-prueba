@@ -15,7 +15,7 @@ export default function BottomNav() {
     { label: "Mi Cuenta", icon: "👤", path: "/mi-cuenta" },
   ];
 
-  const [selectedIndex, setSelectedIndex] = useState(() => {
+  const [_selectedIndex, setSelectedIndex] = useState(() => {
     const idx = navItems.findIndex((i) => i.path === location.pathname);
     return idx >= 0 ? idx : 0;
   });

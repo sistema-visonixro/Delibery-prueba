@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# Pre-push hook (versioned). Copies to .git/hooks on install.
+# Ejecuta build antes de permitir el push. Salir con código != 0 aborta el push.
+
+# Permitir saltar el build en CI o si se exporta SKIP_BUILD=1
+if [ "$CI" = "true" ] || [ "$SKIP_BUILD" = "1" ]; then
+  echo "[pre-push] CI detected or SKIP_BUILD=1 — saltando build"
+  exit 0
+fi
+
+echo "[pre-push] Ejecutando 'npm run build' antes del push..."
+if npm run build --silent; then
+  echo "[pre-push] Build completado correctamente. Continuando con el push."
+  exit 0
+else
+  echo "[pre-push] ERROR: El build falló. Aborta el push."
+  echo "Corrige los errores, vuelve a ejecutar el build y empuja de nuevo."
+  exit 1
+fi

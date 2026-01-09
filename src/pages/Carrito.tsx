@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "../components/Header";
 import BottomNav from "../components/BottomNav";
+import "./Carrito.css";
 
 interface ItemCarrito {
   id: string;
@@ -16,6 +18,10 @@ interface ItemCarrito {
   platillo_imagen: string;
   restaurante_nombre: string;
   restaurante_emoji: string;
+  restaurante_activo: boolean;
+  platillo_disponible: boolean;
+  tiempo_entrega_min: number;
+  costo_envio: number;
   subtotal: number;
 }
 
@@ -24,8 +30,11 @@ interface ResumenCarrito {
   restaurante_emoji: string;
   total_items: number;
   cantidad_total: number;
+  subtotal_productos: number;
+  costo_envio: number;
   total_carrito: number;
   un_solo_restaurante: boolean;
+  tiempo_entrega_estimado: number;
 }
 
 export default function Carrito() {
@@ -153,10 +162,17 @@ export default function Carrito() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div style={styles.container}>
         <Header />
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div style={styles.loadingContainer}>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            style={styles.spinner}
+          >
+            🛒
+          </motion.div>
+          <p style={styles.loadingText}>Cargando tu carrito...</p>
         </div>
         <BottomNav />
       </div>
@@ -165,19 +181,29 @@ export default function Carrito() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div style={styles.container}>
         <Header />
-        <div className="max-w-4xl mx-auto p-4 pb-24">
-          <h1 className="text-2xl font-bold mb-6">🛒 Mi Carrito</h1>
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-500 text-lg mb-4">Tu carrito está vacío</p>
-            <button
+        <div style={styles.content}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={styles.emptyState}
+          >
+            <div style={styles.emptyIcon}>🛒</div>
+            <h2 style={styles.emptyTitle}>Tu carrito está vacío</h2>
+            <p style={styles.emptyText}>
+              ¡Agrega deliciosos platillos y comienza tu pedido!
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/home")}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700"
+              style={styles.exploreButton}
             >
+              <span style={{ marginRight: "8px" }}>🍽️</span>
               Explorar Restaurantes
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
         <BottomNav />
       </div>
@@ -185,149 +211,642 @@ export default function Carrito() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={styles.container}>
       <Header />
-      <div className="max-w-4xl mx-auto p-4 pb-24">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">🛒 Mi Carrito</h1>
-          <button
+      <div style={styles.content} className="carrito-content">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={styles.header}
+          className="carrito-header"
+        >
+          <h1 style={styles.title} className="carrito-title">
+            <span style={{ fontSize: "32px", marginRight: "12px" }}>🛒</span>
+            Mi Carrito
+          </h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={vaciarCarrito}
-            className="text-red-600 hover:text-red-700 text-sm"
+            style={styles.clearButton}
+            className="carrito-clear-button"
           >
-            Vaciar carrito
-          </button>
-        </div>
+            🗑️ Vaciar
+          </motion.button>
+        </motion.div>
 
-        {/* Resumen del restaurante */}
-        {resumen && (
-          <div className="bg-white rounded-lg shadow p-4 mb-4">
-            <h2 className="text-lg font-semibold mb-2">
-              {resumen.restaurante_emoji} {resumen.restaurante_nombre}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {resumen.total_items} producto{resumen.total_items > 1 ? "s" : ""}{" "}
-              · {resumen.cantidad_total} item
-              {resumen.cantidad_total > 1 ? "s" : ""}
-            </p>
-          </div>
-        )}
-
-        {/* Items del carrito */}
-        <div className="space-y-4 mb-6">
-          {items.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg shadow p-4">
-              <div className="flex space-x-4">
-                {item.platillo_imagen && (
-                  <img
-                    src={item.platillo_imagen}
-                    alt={item.platillo_nombre}
-                    className="w-20 h-20 rounded-lg object-cover"
-                  />
-                )}
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.platillo_nombre}</h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    ${item.precio_unitario.toFixed(2)}
-                  </p>
-                  {item.notas && (
-                    <p className="text-sm text-gray-500 italic mb-2">
-                      Nota: {item.notas}
+        <div style={styles.mainGrid} className="carrito-main-grid">
+          {/* Columna de items */}
+          <div style={styles.itemsColumn}>
+            {/* Información del restaurante */}
+            {resumen && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                style={styles.restaurantBanner}
+                className="carrito-restaurant-banner"
+              >
+                <div style={styles.restaurantInfo}>
+                  <span style={styles.restaurantEmoji} className="carrito-restaurant-emoji">
+                    {resumen.restaurante_emoji}
+                  </span>
+                  <div>
+                    <h2 style={styles.restaurantName} className="carrito-restaurant-name">
+                      {resumen.restaurante_nombre}
+                    </h2>
+                    <p style={styles.restaurantStats}>
+                      ⏱️ {resumen.tiempo_entrega_estimado} min · 🚚 $
+                      {resumen.costo_envio.toFixed(2)}
                     </p>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() =>
-                          actualizarCantidad(item.id, item.cantidad - 1)
-                        }
-                        disabled={item.cantidad <= 1}
-                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
-                      >
-                        -
-                      </button>
-                      <span className="w-8 text-center font-semibold">
-                        {item.cantidad}
-                      </span>
-                      <button
-                        onClick={() =>
-                          actualizarCantidad(item.id, item.cantidad + 1)
-                        }
-                        className="w-8 h-8 rounded-full bg-indigo-600 text-white hover:bg-indigo-700"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <p className="font-bold text-indigo-600">
-                        ${item.subtotal.toFixed(2)}
-                      </p>
-                      <button
-                        onClick={() => eliminarItem(item.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        🗑️
-                      </button>
-                    </div>
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {/* Items del carrito */}
+            <AnimatePresence>
+              {items.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ delay: index * 0.05 }}
+                  style={styles.itemCard}
+                  className="carrito-item-card"
+                >
+                  <div style={styles.itemContent} className="carrito-item-content">
+                    {item.platillo_imagen && (
+                      <div style={styles.imageContainer}>
+                        <img
+                          src={item.platillo_imagen}
+                          alt={item.platillo_nombre}
+                          style={styles.itemImage}
+                          className="carrito-item-image"
+                        />
+                        {!item.platillo_disponible && (
+                          <div style={styles.unavailableBadge}>
+                            No disponible
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={styles.itemDetails}>
+                      <h3 style={styles.itemName} className="carrito-item-name">{item.platillo_nombre}</h3>
+                      <p style={styles.itemDescription}>
+                        {item.platillo_descripcion}
+                      </p>
+                      <p style={styles.itemPrice}>
+                        ${item.precio_unitario.toFixed(2)}
+                      </p>
+
+                      {item.notas && (
+                        <div style={styles.notesBox}>
+                          <span style={{ marginRight: "4px" }}>📝</span>
+                          {item.notas}
+                        </div>
+                      )}
+
+                      <div style={styles.itemActions} className="carrito-item-actions">
+                        <div style={styles.quantityControl} className="carrito-quantity-control">
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() =>
+                              actualizarCantidad(item.id, item.cantidad - 1)
+                            }
+                            disabled={item.cantidad <= 1}
+                            style={{
+                              ...styles.quantityButton,
+                              ...(item.cantidad <= 1 && styles.quantityButtonDisabled),
+                            }}
+                          >
+                            −
+                          </motion.button>
+                          <span style={styles.quantity}>{item.cantidad}</span>
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() =>
+                              actualizarCantidad(item.id, item.cantidad + 1)
+                            }
+                            style={styles.quantityButton}
+                          >
+                            +
+                          </motion.button>
+                        </div>
+
+                        <div style={styles.itemFooter} className="carrito-item-footer">
+                          <span style={styles.subtotal}>
+                            ${item.subtotal.toFixed(2)}
+                          </span>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => eliminarItem(item.id)}
+                            style={styles.deleteButton}
+                          >
+                            🗑️
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Columna de resumen y checkout */}
+          <div style={styles.summaryColumn} className="carrito-summary-column">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              style={styles.summaryCard}
+              className="carrito-summary-card"
+            >
+              <h2 style={styles.summaryTitle}>📍 Datos de Entrega</h2>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Dirección de entrega *</label>
+                <input
+                  type="text"
+                  value={direccion}
+                  onChange={(e) => setDireccion(e.target.value)}
+                  placeholder="Calle, número, colonia..."
+                  style={styles.input}
+                />
               </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Formulario de pedido */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">📍 Datos de Entrega</h2>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Notas adicionales (opcional)
+                </label>
+                <textarea
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  placeholder="Indicaciones, referencias, etc."
+                  rows={3}
+                  style={{ ...styles.input, ...styles.textarea }}
+                />
+              </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              Dirección de entrega *
-            </label>
-            <input
-              type="text"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Calle, número, colonia..."
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-              required
-            />
+              <div style={styles.divider} />
+
+              <div style={styles.summarySection}>
+                <h3 style={styles.summarySubtitle}>Resumen del Pedido</h3>
+
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>
+                    Subtotal ({resumen?.total_items} productos)
+                  </span>
+                  <span style={styles.summaryValue}>
+                    ${resumen?.subtotal_productos.toFixed(2)}
+                  </span>
+                </div>
+
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Costo de envío</span>
+                  <span style={styles.summaryValue}>
+                    ${resumen?.costo_envio.toFixed(2)}
+                  </span>
+                </div>
+
+                <div style={styles.divider} />
+
+                <div style={styles.totalRow}>
+                  <span style={styles.totalLabel}>Total</span>
+                  <span style={styles.totalValue} className="carrito-total-value">
+                    ${resumen?.total_carrito.toFixed(2)}
+                  </span>
+                </div>
+
+                {resumen && (
+                  <div style={styles.estimatedTime}>
+                    ⏱️ Tiempo estimado: {resumen.tiempo_entrega_estimado} min
+                  </div>
+                )}
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={crearPedido}
+                disabled={creandoPedido || !direccion.trim()}
+                style={{
+                  ...styles.checkoutButton,
+                  ...(creandoPedido || !direccion.trim()
+                    ? styles.checkoutButtonDisabled
+                    : {}),
+                }}
+                className="carrito-checkout-button"
+              >
+                {creandoPedido ? (
+                  <>
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      style={{ display: "inline-block", marginRight: "8px" }}
+                    >
+                      ⏳
+                    </motion.span>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <span style={{ marginRight: "8px" }}>🚀</span>
+                    Realizar Pedido
+                  </>
+                )}
+              </motion.button>
+
+              <p style={styles.secureText}>
+                🔒 Pago seguro y protegido
+              </p>
+            </motion.div>
           </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              Notas adicionales (opcional)
-            </label>
-            <textarea
-              value={notas}
-              onChange={(e) => setNotas(e.target.value)}
-              placeholder="Indicaciones, referencias, etc."
-              rows={3}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-        </div>
-
-        {/* Total y botón */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-xl font-bold">Total:</span>
-            <span className="text-2xl font-bold text-indigo-600">
-              ${resumen?.total_carrito.toFixed(2)}
-            </span>
-          </div>
-
-          <button
-            onClick={crearPedido}
-            disabled={creandoPedido || !direccion.trim()}
-            className="w-full bg-indigo-600 text-white py-4 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-lg"
-          >
-            {creandoPedido ? "⏳ Creando pedido..." : "🚀 Realizar Pedido"}
-          </button>
         </div>
       </div>
       <BottomNav />
     </div>
   );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: "100vh",
+    background: "linear-gradient(to bottom, #f9fafb, #ffffff)",
+  },
+  content: {
+    maxWidth: "1400px",
+    margin: "0 auto",
+    padding: "24px",
+    paddingBottom: "100px",
+  },
+  loadingContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "60vh",
+    gap: "16px",
+  },
+  spinner: {
+    fontSize: "48px",
+  },
+  loadingText: {
+    fontSize: "16px",
+    color: "#6b7280",
+    fontWeight: 500,
+  },
+  emptyState: {
+    textAlign: "center",
+    padding: "80px 20px",
+    background: "#ffffff",
+    borderRadius: "24px",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+    maxWidth: "500px",
+    margin: "40px auto",
+  },
+  emptyIcon: {
+    fontSize: "80px",
+    marginBottom: "24px",
+  },
+  emptyTitle: {
+    fontSize: "28px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "12px",
+  },
+  emptyText: {
+    fontSize: "16px",
+    color: "#6b7280",
+    marginBottom: "32px",
+    lineHeight: "1.6",
+  },
+  exploreButton: {
+    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+    color: "#ffffff",
+    padding: "14px 32px",
+    borderRadius: "12px",
+    border: "none",
+    fontSize: "16px",
+    fontWeight: 600,
+    cursor: "pointer",
+    boxShadow: "0 4px 16px rgba(79, 70, 229, 0.3)",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "24px",
+    flexWrap: "wrap",
+    gap: "16px",
+  },
+  title: {
+    fontSize: "32px",
+    fontWeight: 800,
+    color: "#111827",
+    display: "flex",
+    alignItems: "center",
+  },
+  clearButton: {
+    background: "#fee2e2",
+    color: "#dc2626",
+    padding: "10px 20px",
+    borderRadius: "10px",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  mainGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 400px",
+    gap: "24px",
+    alignItems: "start",
+  },
+  itemsColumn: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+  },
+  restaurantBanner: {
+    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+    borderRadius: "16px",
+    padding: "20px",
+    color: "#ffffff",
+    boxShadow: "0 8px 24px rgba(79, 70, 229, 0.25)",
+  },
+  restaurantInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+  },
+  restaurantEmoji: {
+    fontSize: "48px",
+  },
+  restaurantName: {
+    fontSize: "20px",
+    fontWeight: 700,
+    margin: "0 0 8px 0",
+  },
+  restaurantStats: {
+    fontSize: "14px",
+    opacity: 0.95,
+    margin: 0,
+  },
+  itemCard: {
+    background: "#ffffff",
+    borderRadius: "16px",
+    padding: "20px",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+    transition: "all 0.3s ease",
+  },
+  itemContent: {
+    display: "flex",
+    gap: "16px",
+  },
+  imageContainer: {
+    position: "relative",
+    flexShrink: 0,
+  },
+  itemImage: {
+    width: "120px",
+    height: "120px",
+    borderRadius: "12px",
+    objectFit: "cover",
+  },
+  unavailableBadge: {
+    position: "absolute",
+    top: "8px",
+    left: "8px",
+    background: "rgba(220, 38, 38, 0.95)",
+    color: "#ffffff",
+    padding: "4px 8px",
+    borderRadius: "6px",
+    fontSize: "11px",
+    fontWeight: 600,
+  },
+  itemDetails: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+  },
+  itemName: {
+    fontSize: "18px",
+    fontWeight: 700,
+    color: "#111827",
+    margin: "0 0 8px 0",
+  },
+  itemDescription: {
+    fontSize: "14px",
+    color: "#6b7280",
+    margin: "0 0 8px 0",
+    lineHeight: "1.5",
+  },
+  itemPrice: {
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#4f46e5",
+    margin: "0 0 12px 0",
+  },
+  notesBox: {
+    background: "#fef3c7",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    fontSize: "13px",
+    color: "#92400e",
+    marginBottom: "12px",
+  },
+  itemActions: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "auto",
+  },
+  quantityControl: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    background: "#f3f4f6",
+    borderRadius: "10px",
+    padding: "4px",
+  },
+  quantityButton: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#ffffff",
+    color: "#4f46e5",
+    fontSize: "18px",
+    fontWeight: 600,
+    cursor: "pointer",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+  },
+  quantityButtonDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+  },
+  quantity: {
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#111827",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  itemFooter: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+  },
+  subtotal: {
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#4f46e5",
+  },
+  deleteButton: {
+    background: "transparent",
+    border: "none",
+    fontSize: "20px",
+    cursor: "pointer",
+    padding: "4px",
+  },
+  summaryColumn: {
+    position: "sticky",
+    top: "90px",
+  },
+  summaryCard: {
+    background: "#ffffff",
+    borderRadius: "20px",
+    padding: "28px",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+  },
+  summaryTitle: {
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "20px",
+  },
+  formGroup: {
+    marginBottom: "20px",
+  },
+  label: {
+    display: "block",
+    fontSize: "14px",
+    fontWeight: 600,
+    color: "#374151",
+    marginBottom: "8px",
+  },
+  input: {
+    width: "100%",
+    padding: "12px 16px",
+    border: "2px solid #e5e7eb",
+    borderRadius: "10px",
+    fontSize: "14px",
+    outline: "none",
+    transition: "all 0.2s",
+    boxSizing: "border-box",
+  },
+  textarea: {
+    resize: "vertical",
+    fontFamily: "inherit",
+  },
+  divider: {
+    height: "1px",
+    background: "#e5e7eb",
+    margin: "24px 0",
+  },
+  summarySection: {
+    marginBottom: "24px",
+  },
+  summarySubtitle: {
+    fontSize: "16px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "16px",
+  },
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "12px",
+  },
+  summaryLabel: {
+    fontSize: "14px",
+    color: "#6b7280",
+  },
+  summaryValue: {
+    fontSize: "14px",
+    fontWeight: 600,
+    color: "#111827",
+  },
+  totalRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "16px",
+  },
+  totalLabel: {
+    fontSize: "18px",
+    fontWeight: 700,
+    color: "#111827",
+  },
+  totalValue: {
+    fontSize: "24px",
+    fontWeight: 800,
+    color: "#4f46e5",
+  },
+  estimatedTime: {
+    marginTop: "12px",
+    padding: "12px",
+    background: "#f0fdf4",
+    borderRadius: "10px",
+    fontSize: "14px",
+    color: "#166534",
+    textAlign: "center",
+    fontWeight: 600,
+  },
+  checkoutButton: {
+    width: "100%",
+    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+    color: "#ffffff",
+    padding: "16px",
+    borderRadius: "12px",
+    border: "none",
+    fontSize: "16px",
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: "0 4px 16px rgba(79, 70, 229, 0.3)",
+    marginBottom: "12px",
+  },
+  checkoutButtonDisabled: {
+    background: "#9ca3af",
+    cursor: "not-allowed",
+    boxShadow: "none",
+  },
+  secureText: {
+    fontSize: "13px",
+    color: "#6b7280",
+    textAlign: "center",
+    margin: 0,
+  },
+};
+
+// Media queries con CSS-in-JS
+if (typeof window !== "undefined") {
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = `
+    @media (max-width: 1024px) {
+      /* Ajustar grid a una columna en tablets */
+    }
+    @media (max-width: 768px) {
+      /* Ajustar para móviles */
+    }
+  `;
+  document.head.appendChild(styleSheet);
 }
