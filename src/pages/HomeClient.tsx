@@ -203,13 +203,13 @@ export default function HomeClient() {
       style={{
         background: "#ffffff",
         minHeight: "100vh",
-        paddingBottom: "80px",
+        paddingBottom: "20px",
         position: "relative",
       }}
     >
       <Header />
 
-      <main style={{ maxWidth: "500px", margin: "0 auto", padding: "16px" }}>
+      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "16px" }}>
         <RestaurantCarousel restaurantes={restaurantes} />
 
         <div style={{ marginTop: 12, marginBottom: 18, position: "relative" }}>
@@ -316,7 +316,7 @@ export default function HomeClient() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
               gap: "14px",
             }}
           >

@@ -1,22 +1,23 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
+    { label: "Inicio", icon: "🏠", path: "/home" },
     { label: "Restaurantes", icon: "🍽️", path: "/restaurantes" },
     { label: "Carrito", icon: "🛒", path: "/carrito" },
-    { label: "Inicio", icon: "🏠", path: "/home" },
     { label: "Pedidos", icon: "📦", path: "/pedidos" },
     { label: "Mi Cuenta", icon: "👤", path: "/mi-cuenta" },
   ];
 
   const [selectedIndex, setSelectedIndex] = useState(() => {
     const idx = navItems.findIndex((i) => i.path === location.pathname);
-    return idx >= 0 ? idx : 2; // Índice 2 es "Inicio"
+    return idx >= 0 ? idx : 0;
   });
 
   useEffect(() => {
@@ -24,229 +25,199 @@ export default function BottomNav() {
     if (idx >= 0) setSelectedIndex(idx);
   }, [location.pathname]);
 
-  // compute left/center/right to always show the selected item in center
-  const len = navItems.length;
-  const leftItem = navItems[(selectedIndex + len - 1) % len];
-  const centerItem = navItems[selectedIndex];
-  const rightItem = navItems[(selectedIndex + 1) % len];
+  const handleMenuItemClick = (path: string, idx: number) => {
+    setSelectedIndex(idx);
+    setIsMenuOpen(false);
+    navigate(path);
+  };
 
   return (
-    <nav style={styles.navContainer as any}>
-      {/* Curved Background - Slightly adjusted for a modern feel */}
-      <svg
-        width="100%"
-        height="85"
-        viewBox="0 0 375 85"
-        preserveAspectRatio="none"
-        style={styles.svgBackground as any}
+    <>
+      {/* Botón hamburguesa flotante */}
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        style={styles.hamburgerButton as any}
       >
-        <defs>
-          <linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#4f46e5" /> {/* Indigo más vibrante */}
-            <stop offset="100%" stopColor="#7c3aed" /> {/* Púrpura */}
-          </linearGradient>
-          {/* Un filtro para un efecto de "neón" o glow más suave en el borde */}
-          <filter id="glow">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="atop" />
-          </filter>
-        </defs>
-        <path
-          d="M 0 35 Q 93.75 0 187.5 0 Q 281.25 0 375 35 L 375 85 L 0 85 Z"
-          fill="url(#navGradient)"
-          style={{
-            // quitar drop-shadow para que no se vea una sombra gris oscura
-            filter: "url(#glow)",
-          }} // Más sombra
+        <motion.div
+          animate={{
+            rotate: isMenuOpen ? 45 : 0,
+            y: isMenuOpen ? 8 : 0,
+          }}
+          transition={{ duration: 0.3 }}
+          style={styles.hamburgerLine as any}
         />
-      </svg>
-
-      <div style={styles.buttonWrapper as any}>
-        {/* Left */}
-        <motion.button
-          key={leftItem.path}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.02 }}
-          onClick={() => {
-            const idx = navItems.findIndex((i) => i.path === leftItem.path);
-            if (idx >= 0) setSelectedIndex(idx);
-            if (location.pathname === leftItem.path) {
-              // ya estamos en la misma vista: sólo actualizamos selección
-              return;
-            }
-            navigate(leftItem.path);
+        <motion.div
+          animate={{
+            opacity: isMenuOpen ? 0 : 1,
           }}
-          style={styles.sideButton as any}
-        >
-          <motion.div
-            initial={{ color: "#a7a7a7" }}
-            animate={{
-              color: location.pathname === leftItem.path ? "#fff" : "#a7a7a7",
-            }}
-            transition={{ duration: 0.15 }}
-            style={{ fontSize: "24px" }}
-          >
-            <span>{leftItem.icon}</span>
-          </motion.div>
-          <motion.span style={styles.label as any}>
-            {leftItem.label}
-          </motion.span>
-          {location.pathname === leftItem.path && (
-            <div style={styles.activeDot as any} />
-          )}
-        </motion.button>
-
-        {/* Center (selected) */}
-        <motion.button
-          key={centerItem.path}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.02 }}
-          onClick={() => {
-            const idx = navItems.findIndex((i) => i.path === centerItem.path);
-            if (idx >= 0) setSelectedIndex(idx);
-            if (location.pathname === centerItem.path) {
-              return;
-            }
-            navigate(centerItem.path);
+          transition={{ duration: 0.2 }}
+          style={styles.hamburgerLine as any}
+        />
+        <motion.div
+          animate={{
+            rotate: isMenuOpen ? -45 : 0,
+            y: isMenuOpen ? -8 : 0,
           }}
-          style={styles.centerButton as any}
-        >
+          transition={{ duration: 0.3 }}
+          style={styles.hamburgerLine as any}
+        />
+      </motion.button>
+
+      {/* Overlay oscuro cuando el menú está abierto */}
+      <AnimatePresence>
+        {isMenuOpen && (
           <motion.div
-            initial={{
-              background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-            }}
-            animate={{
-              background:
-                location.pathname === centerItem.path
-                  ? "linear-gradient(135deg, #a78bfa, #c4b5fd)"
-                  : "linear-gradient(135deg, #4f46e5, #7c3aed)",
-            }}
-            transition={{ duration: 0.2 }}
-            style={styles.centerButtonGlow as any}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMenuOpen(false)}
+            style={styles.overlay as any}
           />
-          <motion.span
-            initial={{ scale: 0.95 }}
-            animate={{
-              scale: location.pathname === centerItem.path ? 1.15 : 1,
-            }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            style={{
-              fontSize: "28px",
-              color: location.pathname === centerItem.path ? "#4f46e5" : "#fff",
-            }}
-          >
-            <span>{centerItem.icon}</span>
-          </motion.span>
-        </motion.button>
+        )}
+      </AnimatePresence>
 
-        {/* Right */}
-        <motion.button
-          key={rightItem.path}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.02 }}
-          onClick={() => {
-            const idx = navItems.findIndex((i) => i.path === rightItem.path);
-            if (idx >= 0) setSelectedIndex(idx);
-            if (location.pathname === rightItem.path) {
-              return;
-            }
-            navigate(rightItem.path);
-          }}
-          style={styles.sideButton as any}
-        >
-          <motion.div
-            initial={{ color: "#a7a7a7" }}
-            animate={{
-              color: location.pathname === rightItem.path ? "#fff" : "#a7a7a7",
-            }}
-            transition={{ duration: 0.15 }}
-            style={{ fontSize: "24px" }}
+      {/* Menú desplegable */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.nav
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            style={styles.menuContainer as any}
           >
-            <span>{rightItem.icon}</span>
-          </motion.div>
-          <motion.span style={styles.label as any}>
-            {rightItem.label}
-          </motion.span>
-          {location.pathname === rightItem.path && (
-            <div style={styles.activeDot as any} />
-          )}
-        </motion.button>
-      </div>
-    </nav>
+            <div style={styles.menuHeader as any}>
+              <h2 style={styles.menuTitle as any}>Menú</h2>
+            </div>
+
+            <div style={styles.menuItems as any}>
+              {navItems.map((item, idx) => (
+                <motion.button
+                  key={item.path}
+                  onClick={() => handleMenuItemClick(item.path, idx)}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    ...styles.menuItem,
+                    background:
+                      location.pathname === item.path
+                        ? "linear-gradient(135deg, #4f46e5, #7c3aed)"
+                        : "transparent",
+                    color: location.pathname === item.path ? "#fff" : "#1f2937",
+                  } as any}
+                >
+                  <span style={styles.menuItemIcon as any}>{item.icon}</span>
+                  <span style={styles.menuItemLabel as any}>{item.label}</span>
+                  {location.pathname === item.path && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      style={styles.activeIndicator as any}
+                    />
+                  )}
+                </motion.button>
+              ))}
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
-
 const styles = {
-  navContainer: {
+  hamburgerButton: {
     position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    // Eliminamos el overflow hidden para permitir el efecto de sombra del botón central
-  },
-  svgBackground: {
-    display: "block",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "100%", // Asegura que cubra todo el ancho
-  },
-  buttonWrapper: {
-    position: "relative",
-    display: "flex",
-    justifyContent: "space-around",
-    alignItems: "flex-end",
-    padding: "0 10px 10px 10px",
-    height: "85px", // Ajusta a la altura del SVG
-  },
-  sideButton: {
-    background: "transparent",
+    bottom: "24px",
+    right: "24px",
+    width: "56px",
+    height: "56px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
     border: "none",
+    cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    cursor: "pointer",
-    width: "80px",
-    paddingBottom: "8px", // Espacio para el punto activo
-    position: "relative", // Para posicionar el punto activo
+    justifyContent: "center",
+    gap: "5px",
+    zIndex: 1000,
+    boxShadow: "0 8px 24px rgba(79, 70, 229, 0.4)",
   },
-  centerButton: {
-    background: "#fff",
-    border: "none",
-    borderRadius: "50%",
-    width: "60px",
-    height: "60px",
+  hamburgerLine: {
+    width: "24px",
+    height: "3px",
+    backgroundColor: "#fff",
+    borderRadius: "2px",
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    zIndex: 998,
+  },
+  menuContainer: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: "280px",
+    maxWidth: "80vw",
+    backgroundColor: "#ffffff",
+    boxShadow: "4px 0 24px rgba(0, 0, 0, 0.15)",
+    zIndex: 999,
+    display: "flex",
+    flexDirection: "column",
+  },
+  menuHeader: {
+    padding: "24px 20px",
+    borderBottom: "1px solid #e5e7eb",
+    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+  },
+  menuTitle: {
+    margin: 0,
+    fontSize: "24px",
+    fontWeight: 700,
+    color: "#fff",
+  },
+  menuItems: {
+    flex: 1,
+    padding: "16px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    overflowY: "auto",
+  },
+  menuItem: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    gap: "16px",
+    padding: "16px 20px",
+    border: "none",
+    borderRadius: "12px",
     cursor: "pointer",
-    boxShadow: "none",
-    marginBottom: "35px", // Empuja más hacia arriba para la curva
+    fontSize: "16px",
+    fontWeight: 500,
+    transition: "all 0.2s ease",
     position: "relative",
-    zIndex: 1, // Asegura que el botón esté por encima del SVG
+    textAlign: "left",
   },
-  centerButtonGlow: {
+  menuItemIcon: {
+    fontSize: "24px",
+  },
+  menuItemLabel: {
+    flex: 1,
+  },
+  activeIndicator: {
     position: "absolute",
-    inset: "-4px", // Un poco más grande para un glow más notable
-    borderRadius: "50%",
-    zIndex: -1,
-    // El background se animará directamente en el componente
-  },
-  label: {
-    color: "#fff",
-    fontSize: "11px",
-    fontWeight: 600,
-    marginTop: "6px",
-    textShadow: "0 1px 3px rgba(0,0,0,0.3)",
-  },
-  activeDot: {
-    width: "6px",
-    height: "6px",
+    left: 0,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: "4px",
+    height: "24px",
     backgroundColor: "#fff",
-    borderRadius: "50%",
-    marginTop: "4px",
-    position: "absolute",
-    bottom: "0px", // Posiciona el punto en la parte inferior del botón
+    borderRadius: "0 4px 4px 0",
   },
 };

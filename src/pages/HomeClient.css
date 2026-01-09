@@ -250,6 +250,12 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     padding: 1rem;
@@ -349,6 +355,7 @@
 
   .main-content {
     padding: 1rem 0.75rem;
+    padding-bottom: 90px;
   }
 
   .welcome-card h2 {
