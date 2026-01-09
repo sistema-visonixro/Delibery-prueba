@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import MapaTracking from "../components/MapaTracking";
+import "./DetallePedidoCliente.css";
 
 interface DetallePedido {
   pedido_id: string;
@@ -137,8 +138,8 @@ export default function DetallePedidoCliente() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
+        <div style={{ width: 48, height: 48, borderRadius: 24, borderBottom: "4px solid #6366f1", animation: "spin 1s linear infinite" }} />
       </div>
     );
   }
@@ -158,219 +159,144 @@ export default function DetallePedidoCliente() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 pb-20">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">
-              Pedido #{pedido.numero_pedido}
-            </h1>
-            <p className="text-gray-600">
-              {pedido.restaurante_emoji} {pedido.restaurante_nombre}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-indigo-600">
-              ${pedido.total.toFixed(2)}
-            </p>
-            <p className="text-sm text-gray-500">{pedido.total_items} items</p>
-          </div>
-        </div>
-
-        {/* Estado del pedido */}
-        <div
-          className={`px-4 py-3 rounded-lg ${obtenerEstadoColor(
-            pedido.estado
-          )}`}
-        >
-          <p className="text-center font-semibold text-lg">
-            {obtenerTextoEstado(pedido.estado)}
-          </p>
-        </div>
-
-        {/* Timeline del pedido */}
-        <div className="mt-6 space-y-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-              ✓
-            </div>
+    <div className="detalle-page">
+      <div className="detalle-wrapper">
+        <div className="detalle-card">
+          <div className="detalle-header">
             <div>
-              <p className="font-medium">Pedido realizado</p>
-              <p className="text-sm text-gray-500">
-                {new Date(pedido.creado_en).toLocaleString("es-MX")}
-              </p>
+              <h1 className="detalle-title">Pedido #{pedido.numero_pedido}</h1>
+              <p className="detalle-sub">{pedido.restaurante_emoji} {pedido.restaurante_nombre}</p>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <p className="total-amount">${pedido.total.toFixed(2)}</p>
+              <p style={{ color: "#6b7280" }}>{pedido.total_items} items</p>
             </div>
           </div>
 
-          {pedido.confirmado_en && (
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                ✓
-              </div>
+          <div className={`estado-badge ${
+            pedido.estado === 'pendiente' ? 'estado-pendiente' :
+            pedido.estado === 'confirmado' ? 'estado-confirmado' :
+            pedido.estado === 'en_preparacion' ? 'estado-preparacion' :
+            pedido.estado === 'listo' ? 'estado-listo' :
+            pedido.estado === 'en_camino' ? 'estado-en-camino' :
+            pedido.estado === 'entregado' ? 'estado-entregado' :
+            pedido.estado === 'cancelado' ? 'estado-cancelado' : ''
+          }`}>
+            {obtenerTextoEstado(pedido.estado)}
+          </div>
+
+          <div className="timeline">
+            <div className="timeline-item">
+              <div className="timeline-dot">✓</div>
               <div>
-                <p className="font-medium">Confirmado</p>
-                <p className="text-sm text-gray-500">
-                  {new Date(pedido.confirmado_en).toLocaleString("es-MX")}
-                </p>
+                <p style={{ fontWeight: 700, margin: 0 }}>Pedido realizado</p>
+                <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.creado_en).toLocaleString('es-MX')}</p>
               </div>
             </div>
-          )}
 
-          {pedido.asignado_en && (
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                ✓
-              </div>
-              <div>
-                <p className="font-medium">Repartidor asignado</p>
-                <p className="text-sm text-gray-500">
-                  {new Date(pedido.asignado_en).toLocaleString("es-MX")}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {pedido.entregado_en && (
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                ✓
-              </div>
-              <div>
-                <p className="font-medium">Entregado</p>
-                <p className="text-sm text-gray-500">
-                  {new Date(pedido.entregado_en).toLocaleString("es-MX")}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Información del repartidor */}
-      {pedido.tiene_repartidor && pedido.repartidor_nombre && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-          <h2 className="text-lg font-semibold mb-4">🚚 Tu Repartidor</h2>
-          <div className="flex items-center space-x-4">
-            {pedido.repartidor_foto ? (
-              <img
-                src={pedido.repartidor_foto}
-                alt={pedido.repartidor_nombre}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl">
-                👤
+            {pedido.confirmado_en && (
+              <div className="timeline-item">
+                <div className="timeline-dot">✓</div>
+                <div>
+                  <p style={{ fontWeight: 700, margin: 0 }}>Confirmado</p>
+                  <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.confirmado_en).toLocaleString('es-MX')}</p>
+                </div>
               </div>
             )}
-            <div className="flex-1">
-              <p className="font-semibold text-lg">
-                {pedido.repartidor_nombre}
-              </p>
-              {pedido.repartidor_vehiculo && (
-                <p className="text-gray-600 capitalize">
-                  {pedido.repartidor_vehiculo}
-                </p>
-              )}
-              {pedido.repartidor_telefono && (
-                <a
-                  href={`tel:${pedido.repartidor_telefono}`}
-                  className="text-indigo-600 hover:underline text-sm"
-                >
-                  📞 {pedido.repartidor_telefono}
-                </a>
-              )}
+
+            {pedido.asignado_en && (
+              <div className="timeline-item">
+                <div className="timeline-dot">✓</div>
+                <div>
+                  <p style={{ fontWeight: 700, margin: 0 }}>Repartidor asignado</p>
+                  <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.asignado_en).toLocaleString('es-MX')}</p>
+                </div>
+              </div>
+            )}
+
+            {pedido.entregado_en && (
+              <div className="timeline-item">
+                <div className="timeline-dot">✓</div>
+                <div>
+                  <p style={{ fontWeight: 700, margin: 0 }}>Entregado</p>
+                  <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.entregado_en).toLocaleString('es-MX')}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {pedido.tiene_repartidor && pedido.repartidor_nombre && (
+          <div className="detalle-card repartidor-card">
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>🚚 Tu Repartidor</h2>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mapa de tracking */}
-      {pedido.tracking_activo && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-          <h2 className="text-lg font-semibold mb-4">
-            🗺️ Ubicación en Tiempo Real
-          </h2>
-          <MapaTracking
-            pedidoId={pedidoId!}
-            clienteLat={pedido.latitud}
-            clienteLng={pedido.longitud}
-          />
-        </div>
-      )}
-
-      {/* Dirección de entrega */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-        <h2 className="text-lg font-semibold mb-3">📍 Dirección de Entrega</h2>
-        <p className="text-gray-900">{pedido.direccion_entrega}</p>
-        {pedido.notas_cliente && (
-          <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
-            <p className="text-sm font-medium text-yellow-800 mb-1">
-              💬 Notas de entrega:
-            </p>
-            <p className="text-gray-700">{pedido.notas_cliente}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Items del pedido */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-        <h2 className="text-lg font-semibold mb-4">📦 Items del Pedido</h2>
-        <div className="space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.detalle_id}
-              className="flex space-x-4 border-b pb-4 last:border-b-0"
-            >
-              {item.platillo_imagen && (
-                <img
-                  src={item.platillo_imagen}
-                  alt={item.platillo_nombre}
-                  className="w-20 h-20 rounded-lg object-cover"
-                />
-              )}
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <h3 className="font-semibold">{item.platillo_nombre}</h3>
-                  <p className="font-bold text-indigo-600">
-                    ${item.subtotal.toFixed(2)}
-                  </p>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  {item.platillo_descripcion}
-                </p>
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-500">
-                    Cantidad: {item.cantidad} × $
-                    {item.precio_unitario.toFixed(2)}
-                  </p>
-                </div>
-                {item.notas_platillo && (
-                  <p className="text-sm text-gray-600 italic mt-1">
-                    Nota: {item.notas_platillo}
-                  </p>
+            <div style={{ flex: 1 }}>
+              <div className="repartidor-card">
+                {pedido.repartidor_foto ? (
+                  <img src={pedido.repartidor_foto} alt={pedido.repartidor_nombre} className="repartidor-photo" />
+                ) : (
+                  <div className="repartidor-placeholder">👤</div>
                 )}
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700 }}>{pedido.repartidor_nombre}</p>
+                  {pedido.repartidor_vehiculo && (<p style={{ margin: 0, color: '#374151', textTransform: 'capitalize' }}>{pedido.repartidor_vehiculo}</p>)}
+                  {pedido.repartidor_telefono && (<a href={`tel:${pedido.repartidor_telefono}`} style={{ color: '#4f46e5', textDecoration: 'none' }}>📞 {pedido.repartidor_telefono}</a>)}
+                </div>
               </div>
             </div>
-          ))}
+          </div>
+        )}
+
+        {pedido.tracking_activo && (
+          <div className="detalle-card map-card">
+            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>🗺️ Ubicación en Tiempo Real</h2>
+            <MapaTracking pedidoId={pedidoId!} clienteLat={pedido.latitud} clienteLng={pedido.longitud} />
+          </div>
+        )}
+
+        <div className="detalle-card">
+          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>📍 Dirección de Entrega</h2>
+          <p style={{ margin: 0, color: '#111827' }}>{pedido.direccion_entrega}</p>
+          {pedido.notas_cliente && (
+            <div className="address-note">
+              <p style={{ margin: 0, fontWeight: 700, color: '#92400e' }}>💬 Notas de entrega:</p>
+              <p style={{ margin: 0, color: '#374151' }}>{pedido.notas_cliente}</p>
+            </div>
+          )}
         </div>
 
-        {/* Total */}
-        <div className="border-t pt-4 mt-4">
-          <div className="flex justify-between items-center text-xl font-bold">
+        <div className="detalle-card items-card">
+          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>📦 Items del Pedido</h2>
+          <div>
+            {items.map((item) => (
+              <div key={item.detalle_id} className="item-row">
+                {item.platillo_imagen && (
+                  <img src={item.platillo_imagen} alt={item.platillo_nombre} className="item-image" />
+                )}
+                <div className="item-details">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontWeight: 700 }}>{item.platillo_nombre}</h3>
+                    <p style={{ margin: 0, fontWeight: 800, color: '#4f46e5' }}>${item.subtotal.toFixed(2)}</p>
+                  </div>
+                  <p style={{ margin: '6px 0', color: '#6b7280' }}>{item.platillo_descripcion}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280' }}>
+                    <p> Cantidad: {item.cantidad} × ${item.precio_unitario.toFixed(2)}</p>
+                    {item.notas_platillo && <p style={{ fontStyle: 'italic' }}>Nota: {item.notas_platillo}</p>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="total-row">
             <span>Total:</span>
-            <span className="text-indigo-600">${pedido.total.toFixed(2)}</span>
+            <span style={{ color: '#4f46e5' }}>${pedido.total.toFixed(2)}</span>
           </div>
         </div>
-      </div>
 
-      {/* Botón de volver */}
-      <button
-        onClick={() => navigate("/pedidos")}
-        className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition-colors"
-      >
-        ← Volver a Mis Pedidos
-      </button>
+        <button onClick={() => navigate('/pedidos')} className="primary-btn">← Volver a Mis Pedidos</button>
+      </div>
     </div>
   );
 }

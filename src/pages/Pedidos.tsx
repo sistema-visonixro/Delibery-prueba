@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import BottomNav from "../components/BottomNav";
+import "./Pedidos.css";
 
 interface Pedido {
   pedido_id: string;
@@ -97,10 +98,10 @@ export default function Pedidos() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="pedidos-page">
         <Header />
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "20rem" }}>
+          <div className="loader" />
         </div>
         <BottomNav />
       </div>
@@ -108,91 +109,65 @@ export default function Pedidos() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="pedidos-page">
       <Header />
-      <div className="max-w-4xl mx-auto p-4 pb-24">
-        <h1 className="text-2xl font-bold mb-6">📦 Mis Pedidos</h1>
+      <div className="pedidos-wrapper">
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>📦 Mis Pedidos</h1>
 
         {pedidos.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-500 text-lg mb-4">
+          <div style={{ textAlign: "center", padding: "3rem", background: "#ffffff", borderRadius: 12, boxShadow: "0 6px 18px rgba(15,23,42,0.06)" }}>
+            <p style={{ color: "#6b7280", fontSize: "1.125rem", marginBottom: "1rem" }}>
               No tienes pedidos activos
             </p>
             <button
               onClick={() => navigate("/home")}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700"
+              style={{ background: "#4f46e5", color: "#fff", padding: "0.5rem 1.25rem", borderRadius: 10, border: "none" }}
             >
               Hacer un Pedido
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="pedidos-grid">
             {pedidos.map((pedido) => (
               <div
                 key={pedido.pedido_id}
                 onClick={() => navigate(`/pedido/${pedido.pedido_id}`)}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                className="pedido-card"
               >
-                <div className="flex justify-between items-start mb-4">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">
+                    <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 6 }}>
                       {pedido.restaurante_emoji} {pedido.restaurante_nombre}
                     </h3>
-                    <p className="text-sm text-gray-600">
-                      Pedido #{pedido.numero_pedido}
-                    </p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Pedido #{pedido.numero_pedido}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-indigo-600">
-                      ${pedido.total.toFixed(2)}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {pedido.total_items} item
-                      {pedido.total_items > 1 ? "s" : ""}
-                    </p>
+                  <div style={{ textAlign: "right" }}>
+                    <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "#4f46e5" }}>${pedido.total.toFixed(2)}</p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>{pedido.total_items} item{pedido.total_items > 1 ? "s" : ""}</p>
                   </div>
                 </div>
 
-                {/* Estado */}
-                <div className="mb-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${obtenerColorEstado(
-                      pedido.estado
-                    )}`}
-                  >
-                    {obtenerTextoEstado(pedido.estado)}
-                  </span>
+                <div style={{ marginBottom: 8 }}>
+                  <span className="pedido-badge">{obtenerTextoEstado(pedido.estado)}</span>
                 </div>
 
-                {/* Info del repartidor */}
                 {pedido.tiene_repartidor && pedido.repartidor_nombre && (
-                  <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                    <p className="text-sm font-medium text-blue-800">
-                      🚚 Repartidor: {pedido.repartidor_nombre}
-                    </p>
+                  <div className="pedido-repartidor">
+                    <p style={{ fontSize: "0.9rem", color: "#1e3a8a", fontWeight: 600 }}>🚚 Repartidor: {pedido.repartidor_nombre}</p>
                   </div>
                 )}
 
-                {/* Botón de tracking */}
                 {pedido.tracking_activo && (
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-indigo-800">
-                        📍 Tracking en vivo disponible
-                      </p>
-                      <span className="text-indigo-600 text-sm font-semibold">
-                        Ver mapa →
-                      </span>
+                  <div className="pedido-tracking">
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <p style={{ fontSize: "0.9rem", color: "#3730a3", fontWeight: 600 }}>📍 Tracking en vivo disponible</p>
+                      <span style={{ color: "#4f46e5", fontSize: "0.9rem", fontWeight: 700 }}>Ver mapa →</span>
                     </div>
                   </div>
                 )}
 
-                {/* Fecha */}
-                <p className="text-xs text-gray-500">
-                  {new Date(pedido.creado_en).toLocaleString("es-MX", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
+                <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                  {new Date(pedido.creado_en).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}
                 </p>
               </div>
             ))}

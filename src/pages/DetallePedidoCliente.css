@@ -1,0 +1,44 @@
+.detalle-page { background: #f8fafc; min-height: 100vh; color: #0f172a; padding-bottom: 6rem; }
+.detalle-wrapper { max-width: 1024px; margin: 0 auto; padding: 1rem; }
+.detalle-card { background: #fff; border-radius: 12px; padding: 1rem; box-shadow: 0 8px 24px rgba(15,23,42,0.06); margin-bottom: 1rem; }
+.detalle-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom: 0.5rem; }
+.detalle-title { font-size: 1.25rem; font-weight: 700; margin: 0 0 6px 0; }
+.detalle-sub { color: #374151; margin: 0; }
+.total-amount { font-size: 1.75rem; font-weight: 800; color: #4f46e5; }
+.estado-badge { padding: 10px; border-radius: 12px; text-align:center; font-weight:700; margin-top: 8px; }
+.estado-pendiente { background: #fef3c7; color: #92400e; }
+.estado-confirmado { background: #dbeafe; color: #1e3a8a; }
+.estado-preparacion { background: #f5f3ff; color: #5b21b6; }
+.estado-listo { background: #ecfdf5; color: #065f46; }
+.estado-en-camino { background: #eef2ff; color: #3730a3; }
+.estado-entregado { background: #f3f4f6; color: #374151; }
+.estado-cancelado { background: #fee2e2; color: #991b1b; }
+
+.timeline { margin-top: 0.75rem; display:flex; flex-direction:column; gap:10px; }
+.timeline-item { display:flex; gap:12px; align-items:center; }
+.timeline-dot { width:36px; height:36px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+.repartidor-card { display:flex; gap:12px; align-items:center; }
+.repartidor-photo { width:64px; height:64px; border-radius:50%; object-fit:cover; }
+.repartidor-placeholder { width:64px; height:64px; border-radius:50%; background:#eef2ff; display:flex; align-items:center; justify-content:center; font-size:24px; }
+
+.map-card { height: 220px; }
+
+.address-note { background:#fffbeb; padding:10px; border-radius:8px; margin-top:8px; }
+
+.items-card .item-row { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #eef2ff; }
+.item-image { width:76px; height:76px; border-radius:8px; object-fit:cover; }
+.item-details { flex:1; }
+
+.total-row { display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-weight:800; font-size:1.05rem; }
+
+.primary-btn { width:100%; background:#374151; color:#fff; padding:12px; border-radius:10px; border:none; font-weight:700; }
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .detalle-header { flex-direction:column; align-items:flex-start; }
+  .total-amount { font-size:1.25rem; }
+  .map-card { height: 160px; }
+  .repartidor-photo, .repartidor-placeholder { width:56px; height:56px; }
+  .item-image { width:64px; height:64px; }
+}

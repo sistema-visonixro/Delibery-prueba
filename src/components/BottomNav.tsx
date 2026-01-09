@@ -1,11 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { logout } = useAuth();
 
   const navItems = [
     { label: "Inicio", icon: "🏠", path: "/home" },
@@ -117,6 +119,26 @@ export default function BottomNav() {
                   )}
                 </motion.button>
               ))}
+              
+              <div style={{ height: "1px", background: "#e5e7eb", margin: "12px 0" }} />
+              
+              <motion.button
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                  setIsMenuOpen(false);
+                }}
+                whileHover={{ scale: 1.02, x: 4 }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  ...styles.menuItem,
+                  background: "transparent",
+                  color: "#ef4444",
+                } as any}
+              >
+                <span style={styles.menuItemIcon as any}>🚪</span>
+                <span style={styles.menuItemLabel as any}>Cerrar Sesión</span>
+              </motion.button>
             </div>
           </motion.nav>
         )}
