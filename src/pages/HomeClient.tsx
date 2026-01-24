@@ -66,11 +66,11 @@ export default function HomeClient() {
             calificacion:
               typeof r.calificacion === "string"
                 ? parseFloat(r.calificacion) || 0
-                : r.calificacion ?? 0,
+                : (r.calificacion ?? 0),
             costo_envio:
               typeof r.costo_envio === "string"
                 ? parseFloat(r.costo_envio) || 0
-                : r.costo_envio ?? 0,
+                : (r.costo_envio ?? 0),
             tiempo_entrega_min: r.tiempo_entrega_min
               ? Number(r.tiempo_entrega_min)
               : 0,
@@ -108,22 +108,19 @@ export default function HomeClient() {
               color_gradiente_inicio: "#fa709a",
               color_gradiente_fin: "#fee140",
             },
-            {
-              id: "4",
-              nombre: "Mandaditos",
-              emoji: "🛒",
-              color_gradiente_inicio: "#4facfe",
-              color_gradiente_fin: "#00f2fe",
-            },
           ]);
         } else {
-          setCategorias(categoriasData || []);
+          // Filtrar "Mandaditos" de las categorías
+          const categoriasFiltradas = (categoriasData || []).filter(
+            (cat) => cat.nombre.toLowerCase() !== "mandaditos",
+          );
+          setCategorias(categoriasFiltradas);
         }
 
         const { data: platillosData, error: errorPlatillos } = await supabase
           .from("platillos")
           .select(
-            `id,nombre,descripcion,imagen_url,precio,disponible,restaurante_id,restaurantes(id,nombre)`
+            `id,nombre,descripcion,imagen_url,precio,disponible,restaurante_id,restaurantes(id,nombre)`,
           )
           .order("nombre", { ascending: true })
           .limit(100);

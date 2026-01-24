@@ -1,33 +1,10 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { supabase } from "../lib/supabase";
-import type { UbicacionTracking } from "../types/repartidor.types";
 
-// Fix para los iconos de Leaflet en React
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
-
-// Iconos personalizados
-const iconoRepartidor = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
+// Iconos personalizados de Leaflet
 const iconoCliente = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -39,21 +16,48 @@ const iconoCliente = new L.Icon({
   shadowSize: [41, 41],
 });
 
+const iconoRestaurante = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+const iconoRepartidor = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+interface UbicacionUsuario {
+  usuario_id: string;
+  latitud: number;
+  longitud: number;
+  velocidad: number | null;
+  precision_metros: number | null;
+  heading: number | null;
+  actualizado_en: string;
+}
+
+interface UbicacionesTracking {
+  cliente: UbicacionUsuario | null;
+  repartidor: UbicacionUsuario | null;
+  restaurante: { latitud: number; longitud: number } | null;
+}
+
 interface MapaTrackingProps {
   pedidoId: string;
   clienteLat: number;
   clienteLng: number;
-}
-
-// Componente para centrar el mapa
-function CentrarMapa({ lat, lng }: { lat: number; lng: number }) {
-  const map = useMap();
-
-  useEffect(() => {
-    map.setView([lat, lng], 13);
-  }, [lat, lng, map]);
-
-  return null;
 }
 
 export default function MapaTracking({
@@ -61,91 +65,265 @@ export default function MapaTracking({
   clienteLat,
   clienteLng,
 }: MapaTrackingProps) {
-  const [ubicacion, setUbicacion] = useState<UbicacionTracking | null>(null);
+  const [ubicaciones, setUbicaciones] = useState<UbicacionesTracking>({
+    cliente: null,
+    repartidor: null,
+    restaurante: null,
+  });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    cargarUbicacion();
+    cargarUbicaciones();
 
-    // Suscribirse a cambios en tiempo real
-    const channel = supabase
-      .channel(`tracking-${pedidoId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "ubicaciones_repartidor",
-          filter: `pedido_id=eq.${pedidoId}`,
-        },
-        () => {
-          cargarUbicacion();
-        }
-      )
-      .subscribe();
-
-    // Actualizar cada 30 segundos
+    // Actualizar ubicaciones cada 10 segundos
     const interval = setInterval(() => {
-      cargarUbicacion();
-    }, 30000);
+      cargarUbicaciones();
+    }, 10000);
 
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [pedidoId]);
 
-  const cargarUbicacion = async () => {
+  const cargarUbicaciones = async () => {
     try {
-      const { data, error } = await supabase
-        .from("vista_ubicacion_actual_pedido")
-        .select("*")
-        .eq("pedido_id", pedidoId)
+      console.log("🗺️ Cargando ubicaciones para pedido:", pedidoId);
+      setError(null);
+
+      // 1. Obtener datos del pedido
+      const { data: pedidoData, error: pedidoError } = await supabase
+        .from("pedidos")
+        .select(
+          `
+          usuario_id,
+          repartidor_id,
+          restaurante_id,
+          restaurantes (
+            latitud,
+            longitud
+          )
+        `,
+        )
+        .eq("id", pedidoId)
         .single();
 
-      if (error) throw error;
-      setUbicacion(data as UbicacionTracking);
-    } catch (error) {
-      console.error("Error al cargar ubicación:", error);
-    } finally {
+      if (pedidoError) throw pedidoError;
+      console.log("✅ Datos del pedido:", pedidoData);
+
+      // 2. Obtener ubicación del cliente
+      console.log("🔍 Buscando ubicación del cliente:", pedidoData.usuario_id);
+      const { data: clienteData, error: clienteError } = await supabase
+        .from("ubicacion_real")
+        .select("*")
+        .eq("usuario_id", pedidoData.usuario_id)
+        .maybeSingle();
+
+      if (clienteError && clienteError.code !== "PGRST116") {
+        throw clienteError;
+      }
+
+      if (clienteData) {
+        console.log("✅ Ubicación del cliente encontrada:", clienteData);
+      } else {
+        console.log(
+          "ℹ️ No hay ubicación del cliente, usando ubicación del pedido",
+        );
+      }
+
+      // 3. Obtener ubicación del repartidor si existe
+      let repartidorData = null;
+      if (pedidoData.repartidor_id) {
+        console.log(
+          "🔍 Buscando ubicación del repartidor:",
+          pedidoData.repartidor_id,
+        );
+        const { data, error: repartidorError } = await supabase
+          .from("ubicacion_real")
+          .select("*")
+          .eq("usuario_id", pedidoData.repartidor_id)
+          .maybeSingle();
+
+        if (repartidorError && repartidorError.code !== "PGRST116") {
+          throw repartidorError;
+        }
+
+        if (data) {
+          console.log("✅ Ubicación del repartidor encontrada:", data);
+          repartidorData = data;
+        } else {
+          console.log("ℹ️ No hay ubicación del repartidor");
+        }
+      } else {
+        console.log("ℹ️ Pedido sin repartidor asignado");
+      }
+
+      // 4. Obtener ubicación del restaurante (a veces viene como arreglo)
+      const restauranteRecord = Array.isArray(pedidoData.restaurantes)
+        ? pedidoData.restaurantes[0]
+        : pedidoData.restaurantes;
+
+      const restauranteData = restauranteRecord
+        ? {
+            latitud: restauranteRecord.latitud,
+            longitud: restauranteRecord.longitud,
+          }
+        : null;
+
+      if (restauranteData) {
+        console.log("🍽️ Ubicación del restaurante:", restauranteData);
+      }
+
+      setUbicaciones({
+        cliente: clienteData,
+        repartidor: repartidorData,
+        restaurante: restauranteData,
+      });
+
+      console.log("✅ Ubicaciones cargadas exitosamente");
+      setLoading(false);
+    } catch (err) {
+      console.error("❌ Error cargando ubicaciones:", err);
+      setError("Error al cargar las ubicaciones");
       setLoading(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-        <p className="text-gray-500">Cargando mapa...</p>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "450px",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              border: "4px solid #f3f4f6",
+              borderTop: "4px solid #4f46e5",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 16px",
+            }}
+          ></div>
+          <p style={{ color: "#6b7280" }}>Cargando mapa...</p>
+        </div>
       </div>
     );
   }
 
-  // Calcular centro del mapa (punto medio entre repartidor y cliente)
-  const centerLat = ubicacion
-    ? (ubicacion.repartidor_latitud + clienteLat) / 2
-    : clienteLat;
-  const centerLng = ubicacion
-    ? (ubicacion.repartidor_longitud + clienteLng) / 2
-    : clienteLng;
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: "32px",
+          textAlign: "center",
+          background: "#fef2f2",
+          borderRadius: "8px",
+        }}
+      >
+        <p style={{ color: "#dc2626", fontWeight: 600 }}>⚠️ {error}</p>
+        <button
+          onClick={cargarUbicaciones}
+          style={{
+            marginTop: "16px",
+            padding: "8px 16px",
+            background: "#4f46e5",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+          }}
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  // Calcular centro del mapa
+  const clienteLatActual = ubicaciones.cliente?.latitud || clienteLat;
+  const clienteLngActual = ubicaciones.cliente?.longitud || clienteLng;
+  let centerLat = clienteLatActual;
+  let centerLng = clienteLngActual;
+
+  if (ubicaciones.repartidor) {
+    centerLat = (ubicaciones.repartidor.latitud + clienteLatActual) / 2;
+    centerLng = (ubicaciones.repartidor.longitud + clienteLngActual) / 2;
+  } else if (ubicaciones.restaurante) {
+    centerLat = (ubicaciones.restaurante.latitud + clienteLatActual) / 2;
+    centerLng = (ubicaciones.restaurante.longitud + clienteLngActual) / 2;
+  }
+
+  const center = {
+    lat: centerLat,
+    lng: centerLng,
+  };
+
+  console.log("🗺️ Renderizando mapa con centro:", center);
+  console.log("📍 Marcadores:", {
+    cliente: { lat: clienteLatActual, lng: clienteLngActual },
+    repartidor: ubicaciones.repartidor
+      ? {
+          lat: ubicaciones.repartidor.latitud,
+          lng: ubicaciones.repartidor.longitud,
+        }
+      : null,
+    restaurante: ubicaciones.restaurante,
+  });
 
   return (
-    <div className="space-y-4">
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        width: "100%",
+        height: "100%",
+      }}
+    >
       {/* Información de tracking */}
-      {ubicacion && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="grid grid-cols-2 gap-4">
+      {ubicaciones.repartidor && (
+        <div
+          style={{
+            background: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            borderRadius: "8px",
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "16px",
+            }}
+          >
             <div>
-              <p className="text-sm text-gray-600">Última actualización:</p>
-              <p className="font-medium">
-                {Math.floor(ubicacion.segundos_desde_actualizacion / 60)}{" "}
-                minutos atrás
+              <p style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0 }}>
+                Repartidor actualizado:
+              </p>
+              <p style={{ fontWeight: 600, margin: 0 }}>
+                {Math.floor(
+                  (Date.now() -
+                    new Date(ubicaciones.repartidor.actualizado_en).getTime()) /
+                    60000,
+                )}{" "}
+                min atrás
               </p>
             </div>
-            {ubicacion.velocidad && (
+            {ubicaciones.repartidor.velocidad && (
               <div>
-                <p className="text-sm text-gray-600">Velocidad:</p>
-                <p className="font-medium">
-                  {ubicacion.velocidad.toFixed(1)} km/h
+                <p
+                  style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0 }}
+                >
+                  Velocidad:
+                </p>
+                <p style={{ fontWeight: 600, margin: 0 }}>
+                  {ubicaciones.repartidor.velocidad.toFixed(1)} km/h
                 </p>
               </div>
             )}
@@ -153,75 +331,137 @@ export default function MapaTracking({
         </div>
       )}
 
-      {/* Mapa */}
-      <div className="h-96 rounded-lg overflow-hidden shadow-lg">
+      {/* Mapa de Leaflet */}
+      <div
+        style={{
+          height: "450px",
+          width: "100%",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+          position: "relative",
+        }}
+      >
         <MapContainer
           center={[centerLat, centerLng]}
-          zoom={13}
+          zoom={11}
           style={{ height: "100%", width: "100%" }}
+          scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
           {/* Marcador del Cliente */}
-          <Marker position={[clienteLat, clienteLng]} icon={iconoCliente}>
+          <Marker
+            position={[clienteLatActual, clienteLngActual]}
+            icon={iconoCliente}
+          >
             <Popup>
-              <div className="text-center">
-                <p className="font-bold">🏠 Cliente</p>
-                <p className="text-sm">Destino de entrega</p>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontWeight: 700, margin: 0 }}>🏠 Cliente</p>
+                <p style={{ fontSize: "0.875rem", margin: 0 }}>
+                  Destino de entrega
+                </p>
               </div>
             </Popup>
           </Marker>
 
-          {/* Marcador del Repartidor */}
-          {ubicacion && (
+          {/* Marcador del Restaurante */}
+          {ubicaciones.restaurante && (
             <Marker
               position={[
-                ubicacion.repartidor_latitud,
-                ubicacion.repartidor_longitud,
+                ubicaciones.restaurante.latitud,
+                ubicaciones.restaurante.longitud,
+              ]}
+              icon={iconoRestaurante}
+            >
+              <Popup>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontWeight: 700, margin: 0 }}>🍽️ Restaurante</p>
+                  <p style={{ fontSize: "0.875rem", margin: 0 }}>
+                    Punto de origen
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          )}
+
+          {/* Marcador del Repartidor */}
+          {ubicaciones.repartidor && (
+            <Marker
+              position={[
+                ubicaciones.repartidor.latitud,
+                ubicaciones.repartidor.longitud,
               ]}
               icon={iconoRepartidor}
             >
               <Popup>
-                <div className="text-center">
-                  <p className="font-bold">🚚 Repartidor</p>
-                  <p className="text-sm">{ubicacion.repartidor_nombre}</p>
-                  <p className="text-sm text-gray-600">
-                    {ubicacion.tipo_vehiculo}
-                  </p>
-                  {ubicacion.velocidad && (
-                    <p className="text-sm">
-                      {ubicacion.velocidad.toFixed(1)} km/h
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontWeight: 700, margin: 0 }}>🚚 Repartidor</p>
+                  {ubicaciones.repartidor.velocidad && (
+                    <p style={{ fontSize: "0.875rem", margin: 0 }}>
+                      {ubicaciones.repartidor.velocidad.toFixed(1)} km/h
                     </p>
                   )}
                 </div>
               </Popup>
             </Marker>
           )}
-
-          <CentrarMapa lat={centerLat} lng={centerLng} />
         </MapContainer>
       </div>
 
       {/* Leyenda */}
-      <div className="flex justify-center space-x-6 text-sm">
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "24px",
+          fontSize: "0.875rem",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "16px",
+              height: "16px",
+              background: "#2563eb",
+              borderRadius: "50%",
+            }}
+          ></div>
           <span>Repartidor</span>
         </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 bg-red-600 rounded-full"></div>
-          <span>Cliente (Destino)</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "16px",
+              height: "16px",
+              background: "#dc2626",
+              borderRadius: "50%",
+            }}
+          ></div>
+          <span>Cliente</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "16px",
+              height: "16px",
+              background: "#16a34a",
+              borderRadius: "50%",
+            }}
+          ></div>
+          <span>Restaurante</span>
         </div>
       </div>
 
-      {!ubicacion && (
-        <div className="text-center text-gray-500 text-sm">
-          El repartidor aún no ha iniciado el tracking GPS
-        </div>
-      )}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,5 +1,4 @@
-import { useEffect, useState, Fragment } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -51,6 +50,64 @@ export default function DetallePedidoCliente() {
   const [loading, setLoading] = useState(true);
   const [showMapModal, setShowMapModal] = useState(false);
 
+  // Actualizar ubicación del cliente cada 20 segundos
+  useEffect(() => {
+    if (!pedidoId || !usuario?.id) return;
+
+    const actualizarUbicacionCliente = async () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              // Insertar o actualizar en la tabla ubicacion_real
+              const { error } = await supabase.from("ubicacion_real").upsert(
+                {
+                  usuario_id: usuario.id,
+                  latitud: position.coords.latitude,
+                  longitud: position.coords.longitude,
+                  velocidad: position.coords.speed,
+                  precision_metros: Math.round(position.coords.accuracy),
+                  heading: position.coords.heading,
+                  actualizado_en: new Date().toISOString(),
+                },
+                {
+                  onConflict: "usuario_id",
+                },
+              );
+
+              if (error) {
+                console.error(
+                  "Error al actualizar ubicación del cliente:",
+                  error,
+                );
+              }
+            } catch (err) {
+              console.error("Error actualizando ubicación:", err);
+            }
+          },
+          (error) => {
+            console.warn("No se pudo obtener la ubicación del cliente:", error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          },
+        );
+      }
+    };
+
+    // Actualizar inmediatamente
+    actualizarUbicacionCliente();
+
+    // Actualizar cada 20 segundos
+    const intervalo = setInterval(actualizarUbicacionCliente, 20000);
+
+    return () => {
+      clearInterval(intervalo);
+    };
+  }, [pedidoId, usuario?.id]);
+
   useEffect(() => {
     if (!usuario || !pedidoId) {
       navigate("/login");
@@ -72,7 +129,7 @@ export default function DetallePedidoCliente() {
         },
         () => {
           cargarPedido();
-        }
+        },
       )
       .subscribe();
 
@@ -127,8 +184,23 @@ export default function DetallePedidoCliente() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
-        <div style={{ width: 48, height: 48, borderRadius: 24, borderBottom: "4px solid #6366f1", animation: "spin 1s linear infinite" }} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+        }}
+      >
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            borderBottom: "4px solid #6366f1",
+            animation: "spin 1s linear infinite",
+          }}
+        />
       </div>
     );
   }
@@ -154,16 +226,29 @@ export default function DetallePedidoCliente() {
           <div className="detalle-header">
             <div>
               <h1 className="detalle-title">Pedido #{pedido.numero_pedido}</h1>
-              <p className="detalle-sub">{pedido.restaurante_emoji} {pedido.restaurante_nombre}</p>
+              <p className="detalle-sub">
+                {pedido.restaurante_emoji} {pedido.restaurante_nombre}
+              </p>
             </div>
             <div style={{ textAlign: "right" }}>
               <p className="total-amount">${pedido.total.toFixed(2)}</p>
               <p style={{ color: "#6b7280" }}>{pedido.total_items} items</p>
               <div style={{ marginTop: 8 }}>
                 <button
-                  onClick={() => setShowMapModal(true)}
+                  onClick={() => {
+                    console.log("🗺️ Abriendo modal del mapa");
+                    setShowMapModal(true);
+                  }}
                   className="secondary-btn"
-                  style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    border: "1px solid #4f46e5",
+                    background: "#4f46e5",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                  }}
                 >
                   🗺️ Ver ubicación
                 </button>
@@ -171,15 +256,25 @@ export default function DetallePedidoCliente() {
             </div>
           </div>
 
-          <div className={`estado-badge ${
-            pedido.estado === 'pendiente' ? 'estado-pendiente' :
-            pedido.estado === 'confirmado' ? 'estado-confirmado' :
-            pedido.estado === 'en_preparacion' ? 'estado-preparacion' :
-            pedido.estado === 'listo' ? 'estado-listo' :
-            pedido.estado === 'en_camino' ? 'estado-en-camino' :
-            pedido.estado === 'entregado' ? 'estado-entregado' :
-            pedido.estado === 'cancelado' ? 'estado-cancelado' : ''
-          }`}>
+          <div
+            className={`estado-badge ${
+              pedido.estado === "pendiente"
+                ? "estado-pendiente"
+                : pedido.estado === "confirmado"
+                  ? "estado-confirmado"
+                  : pedido.estado === "en_preparacion"
+                    ? "estado-preparacion"
+                    : pedido.estado === "listo"
+                      ? "estado-listo"
+                      : pedido.estado === "en_camino"
+                        ? "estado-en-camino"
+                        : pedido.estado === "entregado"
+                          ? "estado-entregado"
+                          : pedido.estado === "cancelado"
+                            ? "estado-cancelado"
+                            : ""
+            }`}
+          >
             {obtenerTextoEstado(pedido.estado)}
           </div>
 
@@ -188,7 +283,9 @@ export default function DetallePedidoCliente() {
               <div className="timeline-dot">✓</div>
               <div>
                 <p style={{ fontWeight: 700, margin: 0 }}>Pedido realizado</p>
-                <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.creado_en).toLocaleString('es-MX')}</p>
+                <p style={{ color: "#6b7280", margin: 0 }}>
+                  {new Date(pedido.creado_en).toLocaleString("es-MX")}
+                </p>
               </div>
             </div>
 
@@ -197,7 +294,9 @@ export default function DetallePedidoCliente() {
                 <div className="timeline-dot">✓</div>
                 <div>
                   <p style={{ fontWeight: 700, margin: 0 }}>Confirmado</p>
-                  <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.confirmado_en).toLocaleString('es-MX')}</p>
+                  <p style={{ color: "#6b7280", margin: 0 }}>
+                    {new Date(pedido.confirmado_en).toLocaleString("es-MX")}
+                  </p>
                 </div>
               </div>
             )}
@@ -206,8 +305,12 @@ export default function DetallePedidoCliente() {
               <div className="timeline-item">
                 <div className="timeline-dot">✓</div>
                 <div>
-                  <p style={{ fontWeight: 700, margin: 0 }}>Repartidor asignado</p>
-                  <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.asignado_en).toLocaleString('es-MX')}</p>
+                  <p style={{ fontWeight: 700, margin: 0 }}>
+                    Repartidor asignado
+                  </p>
+                  <p style={{ color: "#6b7280", margin: 0 }}>
+                    {new Date(pedido.asignado_en).toLocaleString("es-MX")}
+                  </p>
                 </div>
               </div>
             )}
@@ -217,7 +320,9 @@ export default function DetallePedidoCliente() {
                 <div className="timeline-dot">✓</div>
                 <div>
                   <p style={{ fontWeight: 700, margin: 0 }}>Entregado</p>
-                  <p style={{ color: '#6b7280', margin: 0 }}>{new Date(pedido.entregado_en).toLocaleString('es-MX')}</p>
+                  <p style={{ color: "#6b7280", margin: 0 }}>
+                    {new Date(pedido.entregado_en).toLocaleString("es-MX")}
+                  </p>
                 </div>
               </div>
             )}
@@ -227,19 +332,44 @@ export default function DetallePedidoCliente() {
         {pedido.tiene_repartidor && pedido.repartidor_nombre && (
           <div className="detalle-card repartidor-card">
             <div>
-              <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>🚚 Tu Repartidor</h2>
+              <h2 style={{ margin: 0, fontSize: "1rem", fontWeight: 700 }}>
+                🚚 Tu Repartidor
+              </h2>
             </div>
             <div style={{ flex: 1 }}>
               <div className="repartidor-card">
                 {pedido.repartidor_foto ? (
-                  <img src={pedido.repartidor_foto} alt={pedido.repartidor_nombre} className="repartidor-photo" />
+                  <img
+                    src={pedido.repartidor_foto}
+                    alt={pedido.repartidor_nombre}
+                    className="repartidor-photo"
+                  />
                 ) : (
                   <div className="repartidor-placeholder">👤</div>
                 )}
                 <div>
-                  <p style={{ margin: 0, fontWeight: 700 }}>{pedido.repartidor_nombre}</p>
-                  {pedido.repartidor_vehiculo && (<p style={{ margin: 0, color: '#374151', textTransform: 'capitalize' }}>{pedido.repartidor_vehiculo}</p>)}
-                  {pedido.repartidor_telefono && (<a href={`tel:${pedido.repartidor_telefono}`} style={{ color: '#4f46e5', textDecoration: 'none' }}>📞 {pedido.repartidor_telefono}</a>)}
+                  <p style={{ margin: 0, fontWeight: 700 }}>
+                    {pedido.repartidor_nombre}
+                  </p>
+                  {pedido.repartidor_vehiculo && (
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "#374151",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {pedido.repartidor_vehiculo}
+                    </p>
+                  )}
+                  {pedido.repartidor_telefono && (
+                    <a
+                      href={`tel:${pedido.repartidor_telefono}`}
+                      style={{ color: "#4f46e5", textDecoration: "none" }}
+                    >
+                      📞 {pedido.repartidor_telefono}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -248,79 +378,183 @@ export default function DetallePedidoCliente() {
 
         {pedido.tracking_activo && (
           <div className="detalle-card map-card">
-            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>🗺️ Ubicación en Tiempo Real</h2>
-            <MapaTracking pedidoId={pedidoId!} clienteLat={pedido.latitud} clienteLng={pedido.longitud} />
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "1rem",
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              🗺️ Ubicación en Tiempo Real
+            </h2>
+            <MapaTracking
+              pedidoId={pedidoId!}
+              clienteLat={pedido.latitud}
+              clienteLng={pedido.longitud}
+            />
           </div>
         )}
 
-        {/* Modal del mapa (abrible con el botón 'Ver ubicación') */}
-        <Transition appear show={showMapModal} as={Fragment}>
-          <Dialog as="div" className="fixed inset-0 z-50" onClose={() => setShowMapModal(false)}>
-            <div className="min-h-screen px-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
+        {/* Modal fullscreen del mapa */}
+        {showMapModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999,
+              backgroundColor: "white",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* Header del modal */}
+            <div
+              style={{
+                padding: "16px",
+                borderBottom: "1px solid #e5e7eb",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: "white",
+                zIndex: 10000,
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontWeight: 800,
+                  fontSize: "1.25rem",
+                }}
               >
-                <div className="fixed inset-0 bg-black opacity-40" aria-hidden="true" />
-              </Transition.Child>
-
-              <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                📍 Ubicación del pedido
+              </h3>
+              <button
+                onClick={() => {
+                  console.log("❌ Cerrando modal del mapa");
+                  setShowMapModal(false);
+                }}
+                style={{
+                  border: "none",
+                  background: "#f3f4f6",
+                  cursor: "pointer",
+                  fontSize: 20,
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <div className="inline-block w-full max-w-3xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <h3 style={{ margin: 0, fontWeight: 800 }}>Ubicación del pedido</h3>
-                    <button onClick={() => setShowMapModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18 }}>✕</button>
-                  </div>
-                  <div style={{ height: 520 }}>
-                    <MapaTracking pedidoId={pedidoId!} clienteLat={pedido.latitud} clienteLng={pedido.longitud} />
-                  </div>
-                </div>
-              </Transition.Child>
+                ✕
+              </button>
             </div>
-          </Dialog>
-        </Transition>
+            {/* Contenedor del mapa */}
+            <div
+              style={{
+                flex: 1,
+                width: "100%",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {pedido && (
+                <MapaTracking
+                  pedidoId={pedidoId!}
+                  clienteLat={pedido.latitud}
+                  clienteLng={pedido.longitud}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="detalle-card">
-          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>📍 Dirección de Entrega</h2>
-          <p style={{ margin: 0, color: '#111827' }}>{pedido.direccion_entrega}</p>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "1rem",
+              fontWeight: 700,
+              marginBottom: 8,
+            }}
+          >
+            📍 Dirección de Entrega
+          </h2>
+          <p style={{ margin: 0, color: "#111827" }}>
+            {pedido.direccion_entrega}
+          </p>
           {pedido.notas_cliente && (
             <div className="address-note">
-              <p style={{ margin: 0, fontWeight: 700, color: '#92400e' }}>💬 Notas de entrega:</p>
-              <p style={{ margin: 0, color: '#374151' }}>{pedido.notas_cliente}</p>
+              <p style={{ margin: 0, fontWeight: 700, color: "#92400e" }}>
+                💬 Notas de entrega:
+              </p>
+              <p style={{ margin: 0, color: "#374151" }}>
+                {pedido.notas_cliente}
+              </p>
             </div>
           )}
         </div>
 
         <div className="detalle-card items-card">
-          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>📦 Items del Pedido</h2>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: "1rem",
+              fontWeight: 700,
+              marginBottom: 8,
+            }}
+          >
+            📦 Items del Pedido
+          </h2>
           <div>
             {items.map((item) => (
               <div key={item.detalle_id} className="item-row">
                 {item.platillo_imagen && (
-                  <img src={item.platillo_imagen} alt={item.platillo_nombre} className="item-image" />
+                  <img
+                    src={item.platillo_imagen}
+                    alt={item.platillo_nombre}
+                    className="item-image"
+                  />
                 )}
                 <div className="item-details">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontWeight: 700 }}>{item.platillo_nombre}</h3>
-                    <p style={{ margin: 0, fontWeight: 800, color: '#4f46e5' }}>${item.subtotal.toFixed(2)}</p>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <h3 style={{ margin: 0, fontWeight: 700 }}>
+                      {item.platillo_nombre}
+                    </h3>
+                    <p style={{ margin: 0, fontWeight: 800, color: "#4f46e5" }}>
+                      ${item.subtotal.toFixed(2)}
+                    </p>
                   </div>
-                  <p style={{ margin: '6px 0', color: '#6b7280' }}>{item.platillo_descripcion}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280' }}>
-                    <p> Cantidad: {item.cantidad} × ${item.precio_unitario.toFixed(2)}</p>
-                    {item.notas_platillo && <p style={{ fontStyle: 'italic' }}>Nota: {item.notas_platillo}</p>}
+                  <p style={{ margin: "6px 0", color: "#6b7280" }}>
+                    {item.platillo_descripcion}
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "#6b7280",
+                    }}
+                  >
+                    <p>
+                      {" "}
+                      Cantidad: {item.cantidad} × $
+                      {item.precio_unitario.toFixed(2)}
+                    </p>
+                    {item.notas_platillo && (
+                      <p style={{ fontStyle: "italic" }}>
+                        Nota: {item.notas_platillo}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -329,11 +563,13 @@ export default function DetallePedidoCliente() {
 
           <div className="total-row">
             <span>Total:</span>
-            <span style={{ color: '#4f46e5' }}>${pedido.total.toFixed(2)}</span>
+            <span style={{ color: "#4f46e5" }}>${pedido.total.toFixed(2)}</span>
           </div>
         </div>
 
-        <button onClick={() => navigate('/pedidos')} className="primary-btn">← Volver a Mis Pedidos</button>
+        <button onClick={() => navigate("/pedidos")} className="primary-btn">
+          ← Volver a Mis Pedidos
+        </button>
       </div>
     </div>
   );

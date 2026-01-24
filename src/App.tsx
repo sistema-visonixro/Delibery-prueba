@@ -42,11 +42,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { usuario } = useAuth();
-  
+
   if (!usuario) {
     return <>{children}</>;
   }
-  
+
   // Redireccionar según el tipo de usuario si ya está autenticado
   switch (usuario.tipo_usuario) {
     case "repartidor":
@@ -262,13 +262,23 @@ function AppRoutes() {
   );
 }
 
+function AppContent() {
+  const { usuario } = useAuth();
+
+  return (
+    <>
+      <AppRoutes />
+      {usuario && <BottomNav />}
+    </>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <AppRoutes />
-          <BottomNav />
+          <AppContent />
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

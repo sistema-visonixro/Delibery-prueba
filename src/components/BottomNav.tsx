@@ -103,9 +103,8 @@ export default function BentoNav() {
                     <div style={iconBoxDark}>🏠</div>
                     <div>
                       <span style={{ ...gridLabel, color: "#fff" }}>
-                       Inicio
+                        Inicio
                       </span>
-                 
                     </div>
                   </button>
 
@@ -244,55 +243,56 @@ const sheetWrapper: React.CSSProperties = {
 const bentoSheet: React.CSSProperties = {
   background: "#ffffff",
   width: "100%",
-  maxWidth: "480px",
-  borderRadius: "40px 40px 0 0",
-  padding: "24px 24px 40px",
+  maxWidth: "420px",
+  maxHeight: "70vh",
+  borderRadius: "28px 28px 0 0",
+  padding: "16px 18px 30px",
   boxShadow: "0 -20px 50px rgba(0,0,0,0.2)",
   border: "1px solid rgba(255,255,255,0.3)",
 };
 
 const handleBar: React.CSSProperties = {
-  width: "50px",
-  height: "5px",
+  width: "40px",
+  height: "4px",
   background: "#e2e8f0",
   borderRadius: "10px",
-  margin: "0 auto 30px",
+  margin: "0 auto 18px",
 };
 
 const userCard: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: "16px",
-  padding: "20px",
+  gap: "12px",
+  padding: "14px 16px",
   background: "#f8fafc",
-  borderRadius: "24px",
-  marginBottom: "20px",
+  borderRadius: "18px",
+  marginBottom: "16px",
   border: "1px solid #f1f5f9",
 };
 
 const avatarHex: React.CSSProperties = {
-  width: "50px",
-  height: "50px",
+  width: "42px",
+  height: "42px",
   background: "linear-gradient(135deg, #6366f1, #a855f7)",
-  borderRadius: "16px",
+  borderRadius: "14px",
   color: "white",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   fontWeight: 900,
-  fontSize: "20px",
+  fontSize: "18px",
   boxShadow: "0 8px 15px rgba(99, 102, 241, 0.3)",
 };
 
 const userWelcome: React.CSSProperties = {
   margin: 0,
-  fontSize: "12px",
+  fontSize: "11px",
   color: "#64748b",
   fontWeight: 600,
 };
 const userName: React.CSSProperties = {
   margin: 0,
-  fontSize: "18px",
+  fontSize: "16px",
   color: "#1e293b",
   fontWeight: 800,
 };
@@ -301,9 +301,9 @@ const exitBtn: React.CSSProperties = {
   background: "white",
   border: "1px solid #fee2e2",
   color: "#ef4444",
-  padding: "8px 12px",
-  borderRadius: "12px",
-  fontSize: "12px",
+  padding: "6px 10px",
+  borderRadius: "10px",
+  fontSize: "11px",
   fontWeight: 700,
   cursor: "pointer",
 };
@@ -311,55 +311,55 @@ const exitBtn: React.CSSProperties = {
 const bentoGrid: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
-  gap: "12px",
+  gap: "10px",
 };
 
 const gridItem: React.CSSProperties = {
   border: "none",
-  borderRadius: "28px",
-  padding: "24px",
+  borderRadius: "20px",
+  padding: "18px",
   cursor: "pointer",
   display: "flex",
   flexDirection: "column",
-  gap: "12px",
+  gap: "10px",
   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
 };
 
 const iconCircle: React.CSSProperties = {
-  width: "44px",
-  height: "44px",
+  width: "38px",
+  height: "38px",
   background: "#f8fafc",
-  borderRadius: "14px",
+  borderRadius: "12px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "20px",
+  fontSize: "18px",
 };
 
 const iconBoxDark: React.CSSProperties = {
-  width: "44px",
-  height: "44px",
+  width: "38px",
+  height: "38px",
   background: "rgba(255,255,255,0.1)",
-  borderRadius: "14px",
+  borderRadius: "12px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "20px",
+  fontSize: "18px",
 };
 
 const gridLabel: React.CSSProperties = {
   fontWeight: 800,
-  fontSize: "15px",
+  fontSize: "14px",
   color: "#0f172a",
 };
 const gridSub: React.CSSProperties = {
   margin: 0,
-  fontSize: "11px",
+  fontSize: "10px",
   opacity: 0.7,
   fontWeight: 500,
 };
 const arrowIcon: React.CSSProperties = {
-  fontSize: "18px",
+  fontSize: "16px",
   opacity: 0.3,
   fontWeight: "bold",
 };
