@@ -9,11 +9,14 @@ import {
 import type { PedidoRepartidor } from "../../types/repartidor.types";
 import { useAuth } from "../../context/AuthContext";
 import MapaTracking from "../../components/MapaTracking";
+import InfoModal from "../../components/InfoModal";
+import { useInfoModal } from "../../hooks/useInfoModal";
 
 export default function EntregaActiva() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const { modalState, showError, showSuccess, closeModal } = useInfoModal();
 
   const [pedido, setPedido] = useState<PedidoRepartidor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +47,7 @@ export default function EntregaActiva() {
 
       const pedidoActual = pedidosData.find((p) => p.pedido_id === pedidoId);
       if (!pedidoActual) {
-        alert("Pedido no encontrado");
+        showError("Pedido no encontrado");
         navigate("/repartidor/mis-pedidos");
         return;
       }
@@ -89,11 +92,11 @@ export default function EntregaActiva() {
         detenerTrackingRef.current();
       }
 
-      alert("✅ Pedido marcado como entregado. ¡Buen trabajo!");
-      navigate("/repartidor/mis-pedidos");
+      showSuccess("¡Pedido marcado como entregado! ¡Buen trabajo!");
+      setTimeout(() => navigate("/repartidor/mis-pedidos"), 1500);
     } catch (error) {
       console.error("Error al marcar como entregado:", error);
-      alert("Error al marcar el pedido como entregado");
+      showError("Error al marcar el pedido como entregado");
     } finally {
       setEntregando(false);
     }
@@ -218,6 +221,14 @@ export default function EntregaActiva() {
           cliente
         </p>
       </div>
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

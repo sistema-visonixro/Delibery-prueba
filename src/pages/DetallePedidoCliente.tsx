@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import MapaTracking from "../components/MapaTracking";
+import InfoModal from "../components/InfoModal";
+import { useInfoModal } from "../hooks/useInfoModal";
 import "./DetallePedidoCliente.css";
 
 interface DetallePedido {
@@ -44,6 +46,7 @@ export default function DetallePedidoCliente() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const { modalState, showError, closeModal } = useInfoModal();
 
   const [pedido, setPedido] = useState<DetallePedido | null>(null);
   const [items, setItems] = useState<ItemPedido[]>([]);
@@ -163,7 +166,7 @@ export default function DetallePedidoCliente() {
       setItems(itemsData as ItemPedido[]);
     } catch (error) {
       console.error("Error al cargar pedido:", error);
-      alert("Error al cargar el pedido");
+      showError("Error al cargar el pedido");
     } finally {
       setLoading(false);
     }
@@ -487,6 +490,14 @@ export default function DetallePedidoCliente() {
           </div>
         </div>
       </div>
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

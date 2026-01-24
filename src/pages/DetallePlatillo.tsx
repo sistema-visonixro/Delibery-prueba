@@ -6,6 +6,8 @@ import "./DetallePlatillo.css";
 import SuccessToast from "../components/SuccessToast";
 import ConfirmModal from "../components/ConfirmModal";
 import BackButton from "../components/BackButton";
+import InfoModal from "../components/InfoModal";
+import { useInfoModal } from "../hooks/useInfoModal";
 
 interface Platillo {
   id: string;
@@ -25,6 +27,7 @@ export default function DetallePlatillo() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { usuario } = useAuth();
+  const { modalState, showError, closeModal } = useInfoModal();
   const [platillo, setPlatillo] = useState<Platillo | null>(null);
   const [loading, setLoading] = useState(true);
   const [agregando, setAgregando] = useState(false);
@@ -147,7 +150,7 @@ export default function DetallePlatillo() {
       await doAdd(userId, restauranteId || null);
     } catch (err: any) {
       console.error("Error agregarAlCarrito:", err);
-      alert(err?.message || "No se pudo agregar al carrito. Intenta de nuevo.");
+      showError(err?.message || "No se pudo agregar al carrito. Intenta de nuevo.");
     } finally {
       setAgregando(false);
     }
@@ -168,7 +171,7 @@ export default function DetallePlatillo() {
       await doAdd(userId, pendingRestauranteId);
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || "No se pudo vaciar/agregar al carrito.");
+      showError(err?.message || "No se pudo vaciar/agregar al carrito.");
     } finally {
       setAgregando(false);
       setPendingRestauranteId(null);
@@ -447,6 +450,14 @@ function NotFound({ navigate }: { navigate: any }) {
       >
         Volver atrás
       </button>
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

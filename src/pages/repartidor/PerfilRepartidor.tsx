@@ -8,6 +8,8 @@ import {
 import type { Repartidor } from "../../types/repartidor.types";
 import { useAuth } from "../../context/AuthContext";
 import Header from "../../components/Header";
+import InfoModal from "../../components/InfoModal";
+import { useInfoModal } from "../../hooks/useInfoModal";
 
 interface Estadisticas {
   entregas_completadas: number;
@@ -19,6 +21,7 @@ interface Estadisticas {
 export default function PerfilRepartidor() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const { modalState, showError, closeModal } = useInfoModal();
   const [repartidor, setRepartidor] = useState<Repartidor | null>(null);
   const [estadisticas, setEstadisticas] = useState<Estadisticas | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +58,7 @@ export default function PerfilRepartidor() {
       await cargarDatos();
     } catch (error) {
       console.error("Error al cambiar disponibilidad:", error);
-      alert("Error al cambiar disponibilidad");
+      showError("Error al cambiar disponibilidad");
     } finally {
       setCambiandoDisponibilidad(false);
     }
@@ -231,6 +234,14 @@ export default function PerfilRepartidor() {
           </div>
         </div>
       </div>
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "../components/Header";
+import InfoModal from "../components/InfoModal";
+import { useInfoModal } from "../hooks/useInfoModal";
 import "./Carrito.css";
 
 interface ItemCarrito {
@@ -43,6 +45,7 @@ export default function Carrito() {
   const [resumen, setResumen] = useState<ResumenCarrito | null>(null);
   const [loading, setLoading] = useState(true);
   const [creandoPedido, setCreandoPedido] = useState(false);
+  const { modalState, showWarning, showSuccess, showError, closeModal } = useInfoModal();
 
   // Formulario de pedido
   const [direccion, setDireccion] = useState("");
@@ -132,7 +135,7 @@ export default function Carrito() {
 
   const crearPedido = async () => {
     if (!usuario?.id || !direccion.trim()) {
-      alert("Por favor ingresa la dirección de entrega");
+      showWarning("Por favor ingresa la dirección de entrega");
       return;
     }
 
@@ -149,11 +152,11 @@ export default function Carrito() {
 
       if (error) throw error;
 
-      alert("¡Pedido creado exitosamente! 🎉");
-      navigate("/pedidos");
+      showSuccess("¡Pedido creado exitosamente! 🎉");
+      setTimeout(() => navigate("/pedidos"), 1500);
     } catch (error: any) {
       console.error("Error al crear pedido:", error);
-      alert(error.message || "Error al crear el pedido");
+      showError(error.message || "Error al crear el pedido");
     } finally {
       setCreandoPedido(false);
     }
@@ -485,6 +488,14 @@ export default function Carrito() {
           </div>
         </div>
       </div>
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

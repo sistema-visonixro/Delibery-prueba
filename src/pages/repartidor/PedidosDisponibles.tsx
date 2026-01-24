@@ -7,9 +7,12 @@ import {
 import type { PedidoDisponible } from "../../types/repartidor.types";
 import { useAuth } from "../../context/AuthContext";
 import Header from "../../components/Header";
+import InfoModal from "../../components/InfoModal";
+import { useInfoModal } from "../../hooks/useInfoModal";
 
 export default function PedidosDisponibles() {
   const { usuario } = useAuth();
+  const { modalState, showSuccess, showError, closeModal } = useInfoModal();
   const [pedidos, setPedidos] = useState<PedidoDisponible[]>([]);
   const [loading, setLoading] = useState(true);
   const [tomandoPedido, setTomandoPedido] = useState<string | null>(null);
@@ -44,11 +47,11 @@ export default function PedidosDisponibles() {
     setTomandoPedido(pedidoId);
     try {
       await tomarPedido(pedidoId, usuario.id);
-      alert('¡Pedido asignado! Ve a "Mis Pedidos" para comenzar la entrega.');
+      showSuccess('¡Pedido asignado! Ve a "Mis Pedidos" para comenzar la entrega.');
       await cargarPedidos();
     } catch (error) {
       console.error("Error al tomar pedido:", error);
-      alert("No se pudo tomar el pedido. Intenta de nuevo.");
+      showError("No se pudo tomar el pedido. Intenta de nuevo.");
     } finally {
       setTomandoPedido(null);
     }
@@ -154,6 +157,14 @@ export default function PedidosDisponibles() {
           </div>
         )}
       </div>
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }
