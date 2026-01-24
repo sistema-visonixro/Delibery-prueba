@@ -355,7 +355,7 @@ export default function Carrito() {
                           className="carrito-item-footer"
                         >
                           <span style={styles.subtotal}>
-                            ${item.subtotal.toFixed(2)}
+                            L{item.subtotal.toFixed(2)}
                           </span>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
