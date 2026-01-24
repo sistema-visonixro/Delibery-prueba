@@ -16,29 +16,32 @@ export default function BentoNav() {
 
   return (
     <>
-      {/* Botón Flotante Estilo Cápsula */}
-      <div style={dockContainer}>
-        <motion.button
-          layoutId="nav-pill"
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsOpen(true)}
-          style={mainButtonStyle}
+      {/* Botón Flotante Circular (FAB) - Esquina Inferior Derecha */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(!isOpen)}
+        style={fabButton}
+      >
+        <motion.div
+          animate={isOpen ? "open" : "closed"}
+          variants={hamburgerVariants}
+          style={hamburgerContainer}
         >
-          <div style={burgerWrapper}>
-            <span style={dotStyle} />
-            <span style={dotStyle} />
-          </div>
-          <span
-            style={{
-              fontWeight: 800,
-              fontSize: "13px",
-              letterSpacing: "0.5px",
-            }}
-          >
-            Menu
-          </span>
-        </motion.button>
-      </div>
+          <motion.span
+            variants={topLineVariants}
+            style={hamburgerLine}
+          />
+          <motion.span
+            variants={middleLineVariants}
+            style={hamburgerLine}
+          />
+          <motion.span
+            variants={bottomLineVariants}
+            style={hamburgerLine}
+          />
+        </motion.div>
+      </motion.button>
 
       <Transition show={isOpen} as={Fragment}>
         <Dialog as="div" onClose={() => setIsOpen(false)} style={modalIndex}>
@@ -54,127 +57,103 @@ export default function BentoNav() {
             <div style={backdropStyle} />
           </Transition.Child>
 
-          {/* Sheet desde arriba */}
-          <div style={sheetWrapperTop}>
+          {/* Panel del Menú Mejorado */}
+          <div style={menuPanelWrapper}>
             <Transition.Child
               as={Fragment}
-              enter="transform transition ease-in-out duration-400"
-              enterFrom="-translate-y-full"
-              enterTo="translate-y-0"
-              leave="transform transition ease-in-out duration-300"
-              leaveFrom="translate-y-0"
-              leaveTo="-translate-y-full"
+              enter="transform transition ease-out duration-400"
+              enterFrom="translate-y-full opacity-0"
+              enterTo="translate-y-0 opacity-100"
+              leave="transform transition ease-in duration-300"
+              leaveFrom="translate-y-0 opacity-100"
+              leaveTo="translate-y-full opacity-0"
             >
-              <Dialog.Panel style={bentoSheetTop}>
-                {/* Pull Indicator */}
+              <Dialog.Panel style={menuPanel}>
+                {/* Handle Bar */}
                 <div style={handleBar} />
 
-                {/* User Profile Glass Card */}
-                <div style={userCardTop}>
-                  <div style={avatarHex}>
+                {/* Header con Usuario */}
+                <div style={userSection}>
+                  <div style={userAvatar}>
                     {usuario?.email?.[0].toUpperCase()}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={userWelcome}>Hola,</p>
-                    <h4 style={userName}>{usuario?.email?.split("@")[0]}</h4>
+                  <div style={userInfo}>
+                    <p style={userGreeting}>¡Hola!</p>
+                    <h3 style={userNameText}>
+                      {usuario?.email?.split("@")[0]}
+                    </h3>
                   </div>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                    style={exitBtn}
-                  >
-                    Cerrar Sesión
+                  <button onClick={() => { logout(); setIsOpen(false); }} style={logoutButton}>
+                    <span style={logoutIcon}>🚪</span>
                   </button>
                 </div>
 
-                {/* Bento Grid 2.0 */}
-                <div style={bentoGridTop}>
-                  {/* Item Grande: Home */}
-                  <button
+                {/* Grid de Navegación Mejorado */}
+                <div style={navigationGrid}>
+                  {/* Home - Item Grande */}
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleAction("/home")}
-                    style={{
-                      ...gridItemTopAccent,
-                      gridColumn: "span 2",
-                    }}
+                    style={navItemLarge}
                   >
-                    <div style={iconBoxDark}>🏠</div>
-                    <div>
-                      <span style={{ ...gridLabel, color: "#fff" }}>
-                        Inicio
-                      </span>
+                    <div style={navIconLarge}>🏠</div>
+                    <div style={navTextContainer}>
+                      <span style={navLabelLarge}>Inicio</span>
+                      <span style={navSubtitle}>Descubre restaurantes</span>
                     </div>
-                  </button>
+                    <span style={navArrow}>→</span>
+                  </motion.button>
 
-                  {/* Items Medianos */}
-                  <button
+                  {/* Restaurantes */}
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleAction("/restaurantes")}
-                       style={{
-                      ...gridItemTop,
-                      gridColumn: "span 2",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
+                    style={navItemMedium}
                   >
-                    <span style={iconCircleTop}>🍽️</span>
-                    <span style={gridLabel}>Locales</span>
-                  </button>
+                    <div style={navIconMedium}>🍽️</div>
+                    <span style={navLabel}>Restaurantes</span>
+                  </motion.button>
 
-                
-
-                  {/* Item Largo: Pedidos */}
-                  <button
+                  {/* Pedidos */}
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleAction("/pedidos")}
-                    style={{
-                      ...gridItemTop,
-                      gridColumn: "span 2",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
+                    style={navItemMedium}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "15px",
-                      }}
-                    >
-                      <span style={iconCircleTop}>📦</span>
-                      <div style={{ textAlign: "left" }}>
-                        <span style={gridLabel}>Mis Pedidos</span>
-                        <p style={gridSub}>Rastreo en tiempo real</p>
-                      </div>
-                    </div>
-                    <span style={arrowIcon}>→</span>
-                  </button>
+                    <div style={navIconMedium}>📦</div>
+                    <span style={navLabel}>Mis Pedidos</span>
+                  </motion.button>
 
-                  {/* Items Pequeños Finales */}
-                  <button
+                  {/* Carrito */}
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleAction("/carrito")}
-                    style={{
-                      ...gridItemTop,
-                      background: "#f0fdf4",
-                      border: "1px solid #dcfce7",
-                    }}
+                    style={navItemSmall}
                   >
-                    <span style={iconCircleTop}>🛒</span>
-                    <span style={gridLabel}>Carrito</span>
-                  </button>
+                    <div style={navIconSmall}>🛒</div>
+                    <span style={navLabelSmall}>Carrito</span>
+                  </motion.button>
 
-                  <button
+                  {/* Perfil */}
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleAction("/mi-cuenta")}
-                    style={{
-                      ...gridItemTop,
-                      background: "#fff",
-                      border: "1px solid rgba(0,0,0,0.05)",
-                    }}
+                    style={navItemSmall}
                   >
-                    <span style={iconCircleTop}>👤</span>
-                    <span style={gridLabel}>Perfil</span>
-                  </button>
+                    <div style={navIconSmall}>👤</div>
+                    <span style={navLabelSmall}>Perfil</span>
+                  </motion.button>
+                </div>
+
+                {/* Footer del Menú */}
+                <div style={menuFooter}>
+                  <p style={footerText}>Food Delibery Roatan</p>
+                  <p style={footerSubtext}>Tu comida, más cerca</p>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -185,58 +164,84 @@ export default function BentoNav() {
   );
 }
 
-// --- Estilos Rediseñados ---
+// --- Estilos Modernos ---
 
-const modalIndex: React.CSSProperties = {
-  zIndex: 2000,
+// FAB Button (Floating Action Button)
+const fabButton: React.CSSProperties = {
   position: "fixed",
-  inset: 0,
-};
-
-const dockContainer: React.CSSProperties = {
-  position: "fixed",
-  bottom: "30px",
-  left: "50%",
-  transform: "translateX(-50%)",
-  zIndex: 10002,
-};
-
-const mainButtonStyle: React.CSSProperties = {
-  background: "#0f172a",
-  color: "white",
+  bottom: "24px",
+  right: "24px",
+  width: "64px",
+  height: "64px",
+  borderRadius: "50%",
+  background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
   border: "none",
-  padding: "14px 28px",
-  borderRadius: "100px",
+  boxShadow: "0 8px 32px rgba(79, 70, 229, 0.4), 0 0 0 0 rgba(79, 70, 229, 0.3)",
+  cursor: "pointer",
+  zIndex: 10003,
   display: "flex",
   alignItems: "center",
-  gap: "12px",
-  boxShadow: "0 15px 30px -5px rgba(15, 23, 42, 0.4)",
-  cursor: "pointer",
+  justifyContent: "center",
+  transition: "box-shadow 0.3s ease",
 };
 
-// Asegurar que el botón reciba eventos por encima de overlays
-mainButtonStyle.zIndex = 10003;
-mainButtonStyle.pointerEvents = "auto" as any;
+// Hamburger Menu
+const hamburgerContainer: React.CSSProperties = {
+  width: "24px",
+  height: "18px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  position: "relative",
+};
 
-const burgerWrapper: React.CSSProperties = { display: "flex", gap: "4px" };
-const dotStyle: React.CSSProperties = {
-  width: "6px",
-  height: "6px",
-  background: "#6366f1",
-  borderRadius: "50%",
+const hamburgerLine: React.CSSProperties = {
+  width: "100%",
+  height: "2.5px",
+  background: "#ffffff",
+  borderRadius: "2px",
+  transformOrigin: "center",
+};
+
+// Animaciones del Hamburger
+const hamburgerVariants = {
+  open: {},
+  closed: {},
+};
+
+const topLineVariants = {
+  open: { rotate: 45, y: 8 },
+  closed: { rotate: 0, y: 0 },
+};
+
+const middleLineVariants = {
+  open: { opacity: 0 },
+  closed: { opacity: 1 },
+};
+
+const bottomLineVariants = {
+  open: { rotate: -45, y: -8 },
+  closed: { rotate: 0, y: 0 },
+};
+
+// Modal
+const modalIndex: React.CSSProperties = {
+  zIndex: 10000,
+  position: "fixed",
+  inset: 0,
 };
 
 const backdropStyle: React.CSSProperties = {
   position: "fixed",
   inset: 0,
-  background: "rgba(15, 23, 42, 0.6)",
-  backdropFilter: "blur(8px)",
+  background: "rgba(15, 23, 42, 0.7)",
+  backdropFilter: "blur(12px)",
 };
 
-// Wrapper para sheet que cae desde arriba
-const sheetWrapperTop: React.CSSProperties = {
+// Menu Panel
+const menuPanelWrapper: React.CSSProperties = {
   position: "fixed",
-  top: 0,
+  bottom: 0,
   left: 0,
   right: 0,
   display: "flex",
@@ -244,140 +249,238 @@ const sheetWrapperTop: React.CSSProperties = {
   pointerEvents: "none",
 };
 
-const bentoSheetTop: React.CSSProperties = {
-  background: "linear-gradient(180deg,#ffffff,#f8fafc)",
+const menuPanel: React.CSSProperties = {
+  background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
   width: "100%",
-  maxWidth: "520px",
-  maxHeight: "80vh",
-  borderRadius: "0 0 24px 24px",
-  padding: "18px 18px 28px",
-  boxShadow: "0 20px 50px rgba(2,6,23,0.12)",
-  border: "1px solid rgba(0,0,0,0.04)",
+  maxWidth: "540px",
+  maxHeight: "85vh",
+  borderRadius: "32px 32px 0 0",
+  padding: "24px 20px 32px",
+  boxShadow: "0 -10px 60px rgba(15, 23, 42, 0.2)",
+  border: "1px solid rgba(255, 255, 255, 0.8)",
+  borderBottom: "none",
   pointerEvents: "auto",
+  overflowY: "auto",
 };
 
 const handleBar: React.CSSProperties = {
-  width: "40px",
-  height: "4px",
-  background: "#e2e8f0",
+  width: "48px",
+  height: "5px",
+  background: "linear-gradient(90deg, #e0e7ff 0%, #c7d2fe 100%)",
   borderRadius: "10px",
-  margin: "0 auto 18px",
+  margin: "0 auto 24px",
 };
 
-const userCardTop: React.CSSProperties = {
+// User Section
+const userSection: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: "12px",
-  padding: "14px 16px",
-  background: "linear-gradient(90deg,#eef2ff,#fff)",
-  borderRadius: "12px",
-  marginBottom: "14px",
-  border: "1px solid rgba(0,0,0,0.03)",
+  gap: "16px",
+  padding: "20px",
+  background: "linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)",
+  borderRadius: "20px",
+  marginBottom: "24px",
+  border: "2px solid #c7d2fe",
+  boxShadow: "0 4px 16px rgba(79, 70, 229, 0.1)",
 };
 
-const avatarHex: React.CSSProperties = {
-  width: "42px",
-  height: "42px",
-  background: "linear-gradient(135deg, #6366f1, #a855f7)",
-  borderRadius: "14px",
-  color: "white",
+const userAvatar: React.CSSProperties = {
+  width: "56px",
+  height: "56px",
+  borderRadius: "16px",
+  background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+  color: "#ffffff",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  fontSize: "24px",
   fontWeight: 900,
-  fontSize: "18px",
-  boxShadow: "0 8px 15px rgba(99, 102, 241, 0.3)",
+  boxShadow: "0 8px 20px rgba(79, 70, 229, 0.4)",
 };
 
-const userWelcome: React.CSSProperties = {
+const userInfo: React.CSSProperties = {
+  flex: 1,
+};
+
+const userGreeting: React.CSSProperties = {
   margin: 0,
-  fontSize: "11px",
+  fontSize: "13px",
   color: "#64748b",
   fontWeight: 600,
+  marginBottom: "4px",
 };
-const userName: React.CSSProperties = {
+
+const userNameText: React.CSSProperties = {
   margin: 0,
-  fontSize: "16px",
+  fontSize: "20px",
   color: "#1e293b",
   fontWeight: 800,
 };
 
-const exitBtn: React.CSSProperties = {
-  background: "white",
-  border: "1px solid #fee2e2",
+const logoutButton: React.CSSProperties = {
+  width: "48px",
+  height: "48px",
+  borderRadius: "12px",
+  background: "#ffffff",
+  border: "2px solid #fee2e2",
   color: "#ef4444",
-  padding: "6px 10px",
-  borderRadius: "10px",
-  fontSize: "11px",
-  fontWeight: 700,
+  fontSize: "20px",
   cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "all 0.3s ease",
+  boxShadow: "0 2px 8px rgba(239, 68, 68, 0.1)",
 };
 
-const bentoGridTop: React.CSSProperties = {
+const logoutIcon: React.CSSProperties = {
+  fontSize: "20px",
+};
+
+// Navigation Grid
+const navigationGrid: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "12px",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "16px",
+  marginBottom: "24px",
 };
 
-const gridItemTopBase: React.CSSProperties = {
+// Nav Items Base
+const navItemBase: React.CSSProperties = {
   border: "none",
-  borderRadius: "14px",
-  padding: "16px",
+  borderRadius: "20px",
   cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  boxShadow: "0 4px 16px rgba(15, 23, 42, 0.08)",
+  position: "relative",
+  overflow: "hidden",
+};
+
+// Large Nav Item (Home)
+const navItemLarge: React.CSSProperties = {
+  ...navItemBase,
+  gridColumn: "span 2",
+  background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+  padding: "24px",
+  justifyContent: "space-between",
+  gap: "16px",
+};
+
+const navIconLarge: React.CSSProperties = {
+  width: "56px",
+  height: "56px",
+  borderRadius: "16px",
+  background: "rgba(255, 255, 255, 0.2)",
+  backdropFilter: "blur(10px)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "28px",
+  flexShrink: 0,
+};
+
+const navTextContainer: React.CSSProperties = {
+  flex: 1,
+  textAlign: "left",
   display: "flex",
   flexDirection: "column",
-  gap: "10px",
-  transition: "transform 0.18s ease, box-shadow 0.18s ease",
-  boxShadow: "0 6px 20px rgba(2,6,23,0.04)",
+  gap: "4px",
 };
 
-const gridItemTop: React.CSSProperties = {
-  ...gridItemTopBase,
-  background: "#ffffff",
-};
-
-const gridItemTopAccent: React.CSSProperties = {
-  ...gridItemTopBase,
-  background: "linear-gradient(90deg,#6366f1,#a855f7)",
-  color: "white",
-};
-
-const iconCircleTop: React.CSSProperties = {
-  width: "40px",
-  height: "40px",
-  background: "#f1f5f9",
-  borderRadius: "10px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "18px",
-};
-
-const iconBoxDark: React.CSSProperties = {
-  width: "40px",
-  height: "40px",
-  background: "rgba(0,0,0,0.06)",
-  borderRadius: "10px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "18px",
-  color: "white",
-};
-
-const gridLabel: React.CSSProperties = {
+const navLabelLarge: React.CSSProperties = {
+  fontSize: "20px",
   fontWeight: 800,
-  fontSize: "14px",
-  color: "#0f172a",
+  color: "#ffffff",
+  display: "block",
 };
-const gridSub: React.CSSProperties = {
-  margin: 0,
-  fontSize: "10px",
-  opacity: 0.7,
-  fontWeight: 500,
+
+const navSubtitle: React.CSSProperties = {
+  fontSize: "13px",
+  color: "rgba(255, 255, 255, 0.8)",
+  fontWeight: 600,
 };
-const arrowIcon: React.CSSProperties = {
+
+const navArrow: React.CSSProperties = {
+  fontSize: "24px",
+  color: "rgba(255, 255, 255, 0.6)",
+  fontWeight: 700,
+};
+
+// Medium Nav Items
+const navItemMedium: React.CSSProperties = {
+  ...navItemBase,
+  background: "#ffffff",
+  padding: "20px",
+  flexDirection: "column",
+  gap: "12px",
+  alignItems: "flex-start",
+};
+
+const navIconMedium: React.CSSProperties = {
+  width: "48px",
+  height: "48px",
+  borderRadius: "14px",
+  background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "24px",
+};
+
+const navLabel: React.CSSProperties = {
   fontSize: "16px",
-  opacity: 0.3,
-  fontWeight: "bold",
+  fontWeight: 800,
+  color: "#1e293b",
+};
+
+// Small Nav Items
+const navItemSmall: React.CSSProperties = {
+  ...navItemBase,
+  background: "#ffffff",
+  padding: "16px",
+  flexDirection: "column",
+  gap: "10px",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const navIconSmall: React.CSSProperties = {
+  width: "44px",
+  height: "44px",
+  borderRadius: "12px",
+  background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "22px",
+};
+
+const navLabelSmall: React.CSSProperties = {
+  fontSize: "14px",
+  fontWeight: 700,
+  color: "#1e293b",
+};
+
+// Menu Footer
+const menuFooter: React.CSSProperties = {
+  textAlign: "center",
+  paddingTop: "16px",
+  borderTop: "2px solid #f1f5f9",
+};
+
+const footerText: React.CSSProperties = {
+  margin: 0,
+  fontSize: "14px",
+  fontWeight: 800,
+  color: "#1e293b",
+  marginBottom: "4px",
+};
+
+const footerSubtext: React.CSSProperties = {
+  margin: 0,
+  fontSize: "12px",
+  color: "#64748b",
+  fontWeight: 600,
 };

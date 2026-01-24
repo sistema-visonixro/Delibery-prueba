@@ -24,6 +24,8 @@ export default function Pedidos() {
   const navigate = useNavigate();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtroEstado, setFiltroEstado] = useState<string>("todos");
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     cargarPedidos();
@@ -71,30 +73,59 @@ export default function Pedidos() {
 
   const obtenerTextoEstado = (estado: string) => {
     const textos: Record<string, string> = {
-      pendiente: "⏳ Pendiente",
-      confirmado: "✅ Confirmado",
-      en_preparacion: "👨‍🍳 En Preparación",
-      listo: "📦 Listo",
-      en_camino: "🚚 En Camino",
-      entregado: "✅ Entregado",
-      cancelado: "❌ Cancelado",
+      pendiente: "Pendiente",
+      confirmado: "Confirmado",
+      en_preparacion: "En Preparación",
+      listo: "Listo",
+      en_camino: "En Camino",
+      entregado: "Entregado",
+      cancelado: "Cancelado",
     };
     return textos[estado] || estado;
   };
+
+  const obtenerIconoEstado = (estado: string) => {
+    const iconos: Record<string, string> = {
+      pendiente: "⏳",
+      confirmado: "✅",
+      en_preparacion: "👨‍🍳",
+      listo: "📦",
+      en_camino: "🚚",
+      entregado: "✅",
+      cancelado: "❌",
+    };
+    return iconos[estado] || "📋";
+  };
+
+  // Filtrar pedidos
+  const pedidosFiltrados = pedidos.filter((pedido) => {
+    const cumpleFiltro =
+      filtroEstado === "todos" || pedido.estado === filtroEstado;
+    const cumpleBusqueda =
+      busqueda === "" ||
+      pedido.numero_pedido.toLowerCase().includes(busqueda.toLowerCase()) ||
+      pedido.restaurante_nombre.toLowerCase().includes(busqueda.toLowerCase());
+    return cumpleFiltro && cumpleBusqueda;
+  });
+
+  // Contar pedidos por estado
+  const contarPorEstado = (estado: string) => {
+    if (estado === "todos") return pedidos.length;
+    return pedidos.filter((p) => p.estado === estado).length;
+  };
+
+  const estadosActivos = ["en_camino", "listo", "en_preparacion", "confirmado"];
+  const pedidosActivos = pedidos.filter((p) =>
+    estadosActivos.includes(p.estado),
+  );
 
   if (loading) {
     return (
       <div className="pedidos-page">
         <Header />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "20rem",
-          }}
-        >
+        <div className="loading-container">
           <div className="loader" />
+          <p className="loading-text">Cargando tus pedidos...</p>
         </div>
       </div>
     );
@@ -104,151 +135,189 @@ export default function Pedidos() {
     <div className="pedidos-page">
       <Header />
       <div className="pedidos-wrapper">
-        <h1
-          style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}
-        >
-          📦 Mis Pedidos
-        </h1>
+        {/* Header con estadísticas */}
+        <div className="pedidos-header">
+          <div>
+            <h1 className="page-title">
+              <span className="title-icon">📦</span>
+              Mis Pedidos
+            </h1>
+            <p className="page-subtitle">
+              {pedidosActivos.length > 0
+                ? `Tienes ${pedidosActivos.length} pedido${pedidosActivos.length > 1 ? "s" : ""} activo${pedidosActivos.length > 1 ? "s" : ""}`
+                : "Historial de pedidos"}
+            </p>
+          </div>
+        </div>
 
         {pedidos.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "3rem",
-              background: "#ffffff",
-              borderRadius: 12,
-              boxShadow: "0 6px 18px rgba(15,23,42,0.06)",
-            }}
-          >
-            <p
-              style={{
-                color: "#6b7280",
-                fontSize: "1.125rem",
-                marginBottom: "1rem",
-              }}
-            >
-              No tienes pedidos activos
+          <div className="empty-state">
+            <div className="empty-icon">🛍️</div>
+            <h2 className="empty-title">No tienes pedidos aún</h2>
+            <p className="empty-description">
+              ¡Explora nuestros restaurantes y haz tu primer pedido!
             </p>
-            <button
-              onClick={() => navigate("/home")}
-              style={{
-                background: "#4f46e5",
-                color: "#fff",
-                padding: "0.5rem 1.25rem",
-                borderRadius: 10,
-                border: "none",
-              }}
-            >
-              Hacer un Pedido
+            <button onClick={() => navigate("/home")} className="cta-button">
+              <span>🍽️</span>
+              Explorar Restaurantes
             </button>
           </div>
         ) : (
-          <div className="pedidos-grid">
-            {pedidos.map((pedido) => (
-              <div
-                key={pedido.pedido_id}
-                onClick={() => navigate(`/pedido/${pedido.pedido_id}`)}
-                className="pedido-card"
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: 8,
-                  }}
-                >
-                  <div>
-                    <h3
-                      style={{
-                        fontSize: "1rem",
-                        fontWeight: 600,
-                        marginBottom: 6,
-                      }}
-                    >
-                      {pedido.restaurante_emoji} {pedido.restaurante_nombre}
-                    </h3>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      Pedido #{pedido.numero_pedido}
-                    </p>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <p
-                      style={{
-                        fontSize: "1.125rem",
-                        fontWeight: 700,
-                        color: "#4f46e5",
-                      }}
-                    >
-                      L {pedido.total.toFixed(2)}
-                    </p>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      {pedido.total_items} item
-                      {pedido.total_items > 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 8 }}>
-                  <span className="pedido-badge">
-                    {obtenerTextoEstado(pedido.estado)}
-                  </span>
-                </div>
-
-                {pedido.tiene_repartidor && pedido.repartidor_nombre && (
-                  <div className="pedido-repartidor">
-                    <p
-                      style={{
-                        fontSize: "0.9rem",
-                        color: "#1e3a8a",
-                        fontWeight: 600,
-                      }}
-                    >
-                      🚚 Repartidor: {pedido.repartidor_nombre}
-                    </p>
-                  </div>
+          <>
+            {/* Barra de búsqueda y filtros */}
+            <div className="search-filter-container">
+              <div className="search-box">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Buscar por número o restaurante..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  className="search-input"
+                />
+                {busqueda && (
+                  <button
+                    onClick={() => setBusqueda("")}
+                    className="clear-search"
+                  >
+                    ✕
+                  </button>
                 )}
+              </div>
 
-                {pedido.tracking_activo && (
-                  <div className="pedido-tracking">
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: "0.9rem",
-                          color: "#3730a3",
-                          fontWeight: 600,
-                        }}
-                      >
-                        📍 Tracking en vivo disponible
-                      </p>
-                      <span
-                        style={{
-                          color: "#4f46e5",
-                          fontSize: "0.9rem",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Ver mapa →
+              <div className="filter-chips">
+                <button
+                  onClick={() => setFiltroEstado("todos")}
+                  className={`filter-chip ${filtroEstado === "todos" ? "active" : ""}`}
+                >
+                  Todos
+                  <span className="chip-count">{contarPorEstado("todos")}</span>
+                </button>
+                <button
+                  onClick={() => setFiltroEstado("en_camino")}
+                  className={`filter-chip ${filtroEstado === "en_camino" ? "active" : ""}`}
+                >
+                  🚚 En Camino
+                  <span className="chip-count">
+                    {contarPorEstado("en_camino")}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setFiltroEstado("en_preparacion")}
+                  className={`filter-chip ${filtroEstado === "en_preparacion" ? "active" : ""}`}
+                >
+                  👨‍🍳 Preparando
+                  <span className="chip-count">
+                    {contarPorEstado("en_preparacion")}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setFiltroEstado("entregado")}
+                  className={`filter-chip ${filtroEstado === "entregado" ? "active" : ""}`}
+                >
+                  ✅ Entregados
+                  <span className="chip-count">
+                    {contarPorEstado("entregado")}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Grid de pedidos */}
+            {pedidosFiltrados.length === 0 ? (
+              <div className="no-results">
+                <p className="no-results-icon">🔍</p>
+                <p className="no-results-text">
+                  No se encontraron pedidos con estos filtros
+                </p>
+                <button
+                  onClick={() => {
+                    setFiltroEstado("todos");
+                    setBusqueda("");
+                  }}
+                  className="reset-filters-btn"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            ) : (
+              <div className="pedidos-grid">
+                {pedidosFiltrados.map((pedido) => (
+                  <div
+                    key={pedido.pedido_id}
+                    onClick={() => navigate(`/pedido/${pedido.pedido_id}`)}
+                    className="pedido-card"
+                  >
+                    {/* Header del card */}
+                    <div className="card-header">
+                      <div className="restaurant-info">
+                        <span className="restaurant-emoji">
+                          {pedido.restaurante_emoji}
+                        </span>
+                        <div>
+                          <h3 className="restaurant-name">
+                            {pedido.restaurante_nombre}
+                          </h3>
+                          <p className="order-number">
+                            Pedido #{pedido.numero_pedido}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="order-total">
+                        <p className="total-amount">L {pedido.total.toFixed(2)}</p>
+                        <p className="total-items">
+                          {pedido.total_items} item
+                          {pedido.total_items > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Estado del pedido */}
+                    <div className={`status-badge status-${pedido.estado}`}>
+                      <span className="status-icon">
+                        {obtenerIconoEstado(pedido.estado)}
+                      </span>
+                      <span className="status-text">
+                        {obtenerTextoEstado(pedido.estado)}
+                      </span>
+                    </div>
+
+                    {/* Información del repartidor */}
+                    {pedido.tiene_repartidor && pedido.repartidor_nombre && (
+                      <div className="delivery-info">
+                        <span className="delivery-icon">🚚</span>
+                        <span className="delivery-text">
+                          {pedido.repartidor_nombre}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Tracking activo */}
+                    {pedido.tracking_activo && (
+                      <div className="tracking-badge">
+                        <span className="tracking-pulse"></span>
+                        <span className="tracking-text">
+                          📍 Seguimiento en vivo
+                        </span>
+                        <span className="tracking-arrow">→</span>
+                      </div>
+                    )}
+
+                    {/* Footer con fecha */}
+                    <div className="card-footer">
+                      <span className="order-date">
+                        🕒{" "}
+                        {new Date(pedido.creado_en).toLocaleString("es-MX", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
                       </span>
                     </div>
                   </div>
-                )}
-
-                <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                  {new Date(pedido.creado_en).toLocaleString("es-MX", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
-                </p>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

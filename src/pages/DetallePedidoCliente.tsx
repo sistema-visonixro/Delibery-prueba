@@ -221,107 +221,107 @@ export default function DetallePedidoCliente() {
 
   return (
     <div className="detalle-page">
+      {/* Back Button */}
+      <button onClick={() => navigate("/pedidos")} className="back-button">
+        <span className="back-arrow">←</span>
+        <span>Mis Pedidos</span>
+      </button>
+
       <div className="detalle-wrapper">
-        <div className="detalle-card">
-          <div className="detalle-header">
-            <div>
-              <h1 className="detalle-title">Pedido #{pedido.numero_pedido}</h1>
-              <p className="detalle-sub">
-                {pedido.restaurante_emoji} {pedido.restaurante_nombre}
-              </p>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <p className="total-amount">L {pedido.total.toFixed(2)}</p>
-              <p style={{ color: "#6b7280" }}>{pedido.total_items} items</p>
-              <div style={{ marginTop: 8 }}>
-                <button
-                  onClick={() => {
-                    console.log("🗺️ Abriendo modal del mapa");
-                    setShowMapModal(true);
-                  }}
-                  className="secondary-btn"
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 10,
-                    border: "1px solid #4f46e5",
-                    background: "#4f46e5",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                  }}
-                >
-                  🗺️ Ver ubicación
-                </button>
+        {/* Main Order Info Card */}
+        <div className="detalle-card main-card">
+          <div className="order-header-section">
+            <div className="restaurant-badge">
+              <span className="restaurant-emoji-large">
+                {pedido.restaurante_emoji}
+              </span>
+              <div>
+                <h1 className="order-title">{pedido.restaurante_nombre}</h1>
+                <p className="order-subtitle">Pedido #{pedido.numero_pedido}</p>
               </div>
             </div>
+            <div className="order-amount-section">
+              <p className="order-total-label">Total</p>
+              <p className="order-total-value">L {pedido.total.toFixed(2)}</p>
+              <p className="order-items-count">
+                {pedido.total_items} item{pedido.total_items > 1 ? "s" : ""}
+              </p>
+            </div>
           </div>
 
-          <div
-            className={`estado-badge ${
-              pedido.estado === "pendiente"
-                ? "estado-pendiente"
-                : pedido.estado === "confirmado"
-                  ? "estado-confirmado"
-                  : pedido.estado === "en_preparacion"
-                    ? "estado-preparacion"
-                    : pedido.estado === "listo"
-                      ? "estado-listo"
-                      : pedido.estado === "en_camino"
-                        ? "estado-en-camino"
-                        : pedido.estado === "entregado"
-                          ? "estado-entregado"
-                          : pedido.estado === "cancelado"
-                            ? "estado-cancelado"
-                            : ""
-            }`}
-          >
-            {obtenerTextoEstado(pedido.estado)}
+          {/* Status Badge */}
+          <div className={`modern-status-badge status-${pedido.estado}`}>
+            <span className="status-pulse"></span>
+            <span className="status-label">
+              {obtenerTextoEstado(pedido.estado)}
+            </span>
           </div>
 
-          <div className="timeline">
-            <div className="timeline-item">
-              <div className="timeline-dot">✓</div>
-              <div>
-                <p style={{ fontWeight: 700, margin: 0 }}>Pedido realizado</p>
-                <p style={{ color: "#6b7280", margin: 0 }}>
-                  {new Date(pedido.creado_en).toLocaleString("es-MX")}
+          {/* Enhanced Timeline */}
+          <div className="modern-timeline">
+            <div className="timeline-line"></div>
+
+            <div className="timeline-step completed">
+              <div className="timeline-icon">
+                <span>✓</span>
+              </div>
+              <div className="timeline-content">
+                <p className="timeline-title">Pedido realizado</p>
+                <p className="timeline-time">
+                  {new Date(pedido.creado_en).toLocaleString("es-MX", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </p>
               </div>
             </div>
 
             {pedido.confirmado_en && (
-              <div className="timeline-item">
-                <div className="timeline-dot">✓</div>
-                <div>
-                  <p style={{ fontWeight: 700, margin: 0 }}>Confirmado</p>
-                  <p style={{ color: "#6b7280", margin: 0 }}>
-                    {new Date(pedido.confirmado_en).toLocaleString("es-MX")}
+              <div className="timeline-step completed">
+                <div className="timeline-icon">
+                  <span>✓</span>
+                </div>
+                <div className="timeline-content">
+                  <p className="timeline-title">Confirmado por restaurante</p>
+                  <p className="timeline-time">
+                    {new Date(pedido.confirmado_en).toLocaleString("es-MX", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </p>
                 </div>
               </div>
             )}
 
             {pedido.asignado_en && (
-              <div className="timeline-item">
-                <div className="timeline-dot">✓</div>
-                <div>
-                  <p style={{ fontWeight: 700, margin: 0 }}>
-                    Repartidor asignado
-                  </p>
-                  <p style={{ color: "#6b7280", margin: 0 }}>
-                    {new Date(pedido.asignado_en).toLocaleString("es-MX")}
+              <div className="timeline-step completed">
+                <div className="timeline-icon">
+                  <span>🚚</span>
+                </div>
+                <div className="timeline-content">
+                  <p className="timeline-title">Repartidor asignado</p>
+                  <p className="timeline-time">
+                    {new Date(pedido.asignado_en).toLocaleString("es-MX", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </p>
                 </div>
               </div>
             )}
 
             {pedido.entregado_en && (
-              <div className="timeline-item">
-                <div className="timeline-dot">✓</div>
-                <div>
-                  <p style={{ fontWeight: 700, margin: 0 }}>Entregado</p>
-                  <p style={{ color: "#6b7280", margin: 0 }}>
-                    {new Date(pedido.entregado_en).toLocaleString("es-MX")}
+              <div className="timeline-step completed">
+                <div className="timeline-icon">
+                  <span>🎉</span>
+                </div>
+                <div className="timeline-content">
+                  <p className="timeline-title">Pedido entregado</p>
+                  <p className="timeline-time">
+                    {new Date(pedido.entregado_en).toLocaleString("es-MX", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </p>
                 </div>
               </div>
@@ -329,139 +329,88 @@ export default function DetallePedidoCliente() {
           </div>
         </div>
 
+        {/* Delivery Person Card */}
         {pedido.tiene_repartidor && pedido.repartidor_nombre && (
-          <div className="detalle-card repartidor-card">
-            <div>
-              <h2 style={{ margin: 0, fontSize: "1rem", fontWeight: 700 }}>
-                🚚 Tu Repartidor
+          <div className="detalle-card delivery-card">
+            <div className="card-title-row">
+              <h2 className="card-title">
+                <span className="card-icon">🚚</span>
+                Tu Repartidor
               </h2>
             </div>
-            <div style={{ flex: 1 }}>
-              <div className="repartidor-card">
-                {pedido.repartidor_foto ? (
-                  <img
-                    src={pedido.repartidor_foto}
-                    alt={pedido.repartidor_nombre}
-                    className="repartidor-photo"
-                  />
-                ) : (
-                  <div className="repartidor-placeholder">👤</div>
-                )}
-                <div>
-                  <p style={{ margin: 0, fontWeight: 700 }}>
-                    {pedido.repartidor_nombre}
-                  </p>
-                  {pedido.repartidor_vehiculo && (
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "#374151",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {pedido.repartidor_vehiculo}
-                    </p>
-                  )}
-                  {pedido.repartidor_telefono && (
-                    <a
-                      href={`tel:${pedido.repartidor_telefono}`}
-                      style={{ color: "#4f46e5", textDecoration: "none" }}
-                    >
-                      📞 {pedido.repartidor_telefono}
-                    </a>
-                  )}
+            <div className="delivery-person-info">
+              {pedido.repartidor_foto ? (
+                <img
+                  src={pedido.repartidor_foto}
+                  alt={pedido.repartidor_nombre}
+                  className="delivery-photo"
+                />
+              ) : (
+                <div className="delivery-photo-placeholder">
+                  <span>👤</span>
                 </div>
+              )}
+              <div className="delivery-details">
+                <p className="delivery-name">{pedido.repartidor_nombre}</p>
+                {pedido.repartidor_vehiculo && (
+                  <p className="delivery-vehicle">
+                    🏍️ {pedido.repartidor_vehiculo}
+                  </p>
+                )}
+                {pedido.repartidor_telefono && (
+                  <a
+                    href={`tel:${pedido.repartidor_telefono}`}
+                    className="delivery-phone"
+                  >
+                    📞 {pedido.repartidor_telefono}
+                  </a>
+                )}
               </div>
             </div>
           </div>
         )}
 
+        {/* Map Card */}
         {pedido.tracking_activo && (
-          <div className="detalle-card map-card">
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "1rem",
-                fontWeight: 700,
-                marginBottom: 8,
-              }}
-            >
-              🗺️ Ubicación en Tiempo Real
-            </h2>
-            <MapaTracking
-              pedidoId={pedidoId!}
-              clienteLat={pedido.latitud}
-              clienteLng={pedido.longitud}
-            />
+          <div className="detalle-card map-container-card">
+            <div className="card-title-row">
+              <h2 className="card-title">
+                <span className="card-icon">🗺️</span>
+                Ubicación en Tiempo Real
+              </h2>
+              <button
+                onClick={() => setShowMapModal(true)}
+                className="expand-map-btn"
+              >
+                <span>⛶</span> Expandir
+              </button>
+            </div>
+            <div className="map-preview">
+              <MapaTracking
+                pedidoId={pedidoId!}
+                clienteLat={pedido.latitud}
+                clienteLng={pedido.longitud}
+              />
+            </div>
           </div>
         )}
 
-        {/* Modal fullscreen del mapa */}
+        {/* Map Modal */}
         {showMapModal && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9999,
-              backgroundColor: "white",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {/* Header del modal */}
-            <div
-              style={{
-                padding: "16px",
-                borderBottom: "1px solid #e5e7eb",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                backgroundColor: "white",
-                zIndex: 10000,
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  fontWeight: 800,
-                  fontSize: "1.25rem",
-                }}
-              >
-                📍 Ubicación del pedido
+          <div className="map-modal">
+            <div className="map-modal-header">
+              <h3 className="map-modal-title">
+                <span>📍</span>
+                Ubicación del pedido
               </h3>
               <button
-                onClick={() => {
-                  console.log("❌ Cerrando modal del mapa");
-                  setShowMapModal(false);
-                }}
-                style={{
-                  border: "none",
-                  background: "#f3f4f6",
-                  cursor: "pointer",
-                  fontSize: 20,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                onClick={() => setShowMapModal(false)}
+                className="map-modal-close"
               >
                 ✕
               </button>
             </div>
-            {/* Contenedor del mapa */}
-            <div
-              style={{
-                flex: 1,
-                width: "100%",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
+            <div className="map-modal-content">
               {pedido && (
                 <MapaTracking
                   pedidoId={pedidoId!}
@@ -473,87 +422,55 @@ export default function DetallePedidoCliente() {
           </div>
         )}
 
-        <div className="detalle-card">
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "1rem",
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            📍 Dirección de Entrega
+        {/* Address Card */}
+        <div className="detalle-card address-card">
+          <h2 className="card-title">
+            <span className="card-icon">📍</span>
+            Dirección de Entrega
           </h2>
-          <p style={{ margin: 0, color: "#111827" }}>
-            {pedido.direccion_entrega}
-          </p>
+          <p className="address-text">{pedido.direccion_entrega}</p>
           {pedido.notas_cliente && (
-            <div className="address-note">
-              <p style={{ margin: 0, fontWeight: 700, color: "#92400e" }}>
-                💬 Notas de entrega:
-              </p>
-              <p style={{ margin: 0, color: "#374151" }}>
-                {pedido.notas_cliente}
-              </p>
+            <div className="delivery-notes">
+              <p className="notes-label">💬 Notas de entrega</p>
+              <p className="notes-text">{pedido.notas_cliente}</p>
             </div>
           )}
         </div>
 
-        <div className="detalle-card items-card">
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "1rem",
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            📦 Items del Pedido
+        {/* Items Card */}
+        <div className="detalle-card items-section">
+          <h2 className="card-title">
+            <span className="card-icon">📦</span>
+            Items del Pedido
           </h2>
-          <div>
-            {items.map((item) => (
-              <div key={item.detalle_id} className="item-row">
+          <div className="items-list">
+            {items.map((item, index) => (
+              <div
+                key={item.detalle_id}
+                className={`item-card ${index !== items.length - 1 ? "with-border" : ""}`}
+              >
                 {item.platillo_imagen && (
-                  <img
-                    src={item.platillo_imagen}
-                    alt={item.platillo_nombre}
-                    className="item-image"
-                  />
-                )}
-                <div className="item-details">
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <h3 style={{ margin: 0, fontWeight: 700 }}>
-                      {item.platillo_nombre}
-                    </h3>
-                    <p style={{ margin: 0, fontWeight: 800, color: "#4f46e5" }}>
-                      L {item.subtotal.toFixed(2)}
-                    </p>
+                  <div className="item-image-container">
+                    <img
+                      src={item.platillo_imagen}
+                      alt={item.platillo_nombre}
+                      className="item-image-modern"
+                    />
                   </div>
-                  <p style={{ margin: "6px 0", color: "#6b7280" }}>
-                    {item.platillo_descripcion}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      color: "#6b7280",
-                    }}
-                  >
-                    <p>
-                      {" "}
-                      Cantidad: {item.cantidad} × $
+                )}
+                <div className="item-info">
+                  <div className="item-header">
+                    <h3 className="item-name">{item.platillo_nombre}</h3>
+                    <p className="item-price">L {item.subtotal.toFixed(2)}</p>
+                  </div>
+                  <p className="item-description">{item.platillo_descripcion}</p>
+                  <div className="item-footer">
+                    <p className="item-quantity">
+                      Cantidad: {item.cantidad} × L{" "}
                       {item.precio_unitario.toFixed(2)}
                     </p>
                     {item.notas_platillo && (
-                      <p style={{ fontStyle: "italic" }}>
-                        Nota: {item.notas_platillo}
-                      </p>
+                      <p className="item-notes">💬 {item.notas_platillo}</p>
                     )}
                   </div>
                 </div>
@@ -561,17 +478,14 @@ export default function DetallePedidoCliente() {
             ))}
           </div>
 
-          <div className="total-row">
-            <span>Total:</span>
-            <span style={{ color: "#4f46e5" }}>
-              L {pedido.total.toFixed(2)}
-            </span>
+          {/* Total Section */}
+          <div className="order-total-section">
+            <div className="total-line">
+              <span className="total-label">Total del pedido</span>
+              <span className="total-value">L {pedido.total.toFixed(2)}</span>
+            </div>
           </div>
         </div>
-
-        <button onClick={() => navigate("/pedidos")} className="primary-btn">
-          ← Volver a Mis Pedidos
-        </button>
       </div>
     </div>
   );
