@@ -46,12 +46,15 @@ export default function Carrito() {
   const [resumen, setResumen] = useState<ResumenCarrito | null>(null);
   const [loading, setLoading] = useState(true);
   const [creandoPedido, setCreandoPedido] = useState(false);
-  const { modalState, showWarning, showSuccess, showError, closeModal } = useInfoModal();
+  const { modalState, showWarning, showSuccess, showError, closeModal } =
+    useInfoModal();
   const [showConfirmVaciar, setShowConfirmVaciar] = useState(false);
 
-  // Formulario de pedido
   const [direccion, setDireccion] = useState("");
   const [notas, setNotas] = useState("");
+  const [metodoPago, setMetodoPago] = useState<
+    "tarjeta" | "transferencia" | "efectivo"
+  >("efectivo");
 
   useEffect(() => {
     cargarCarrito();
@@ -61,7 +64,6 @@ export default function Carrito() {
     if (!usuario?.id) return;
 
     try {
-      // Cargar items del carrito
       const { data: itemsData, error: itemsError } = await supabase
         .from("vista_carrito")
         .select("*")
@@ -69,7 +71,6 @@ export default function Carrito() {
 
       if (itemsError) throw itemsError;
 
-      // Cargar resumen
       const { data: resumenData, error: resumenError } = await supabase
         .from("vista_resumen_carrito")
         .select("*")
@@ -144,20 +145,33 @@ export default function Carrito() {
       return;
     }
 
+    if (!metodoPago) {
+      showWarning("Por favor selecciona un método de pago");
+      return;
+    }
+
     setCreandoPedido(true);
     try {
-      // Obtener coordenadas (por ahora usamos coordenadas dummy, puedes integrar geolocalización)
       const { error } = await supabase.rpc("crear_pedido_desde_carrito", {
         p_usuario_id: usuario.id,
         p_direccion_entrega: direccion,
-        p_latitud: 19.4326, // Coordenadas de ejemplo
+        p_latitud: 19.4326,
         p_longitud: -99.1332,
         p_notas_cliente: notas || null,
       });
 
       if (error) throw error;
 
-      showSuccess("¡Pedido creado exitosamente! 🎉");
+      const metodoPagoTexto =
+        metodoPago === "tarjeta"
+          ? "Tarjeta"
+          : metodoPago === "transferencia"
+            ? "Transferencia"
+            : "Efectivo";
+
+      showSuccess(
+        `¡Pedido creado exitosamente! 🎉\nMétodo de pago: ${metodoPagoTexto}`,
+      );
       setTimeout(() => navigate("/pedidos"), 1500);
     } catch (error: any) {
       console.error("Error al crear pedido:", error);
@@ -169,17 +183,17 @@ export default function Carrito() {
 
   if (loading) {
     return (
-      <div style={styles.container}>
+      <div className="cart-page">
         <Header />
-        <div style={styles.loadingContainer}>
+        <div className="cart-loading">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            style={styles.spinner}
+            className="loading-icon"
           >
             🛒
           </motion.div>
-          <p style={styles.loadingText}>Cargando tu carrito...</p>
+          <p className="loading-text">Cargando tu carrito...</p>
         </div>
       </div>
     );
@@ -187,26 +201,26 @@ export default function Carrito() {
 
   if (items.length === 0) {
     return (
-      <div style={styles.container}>
+      <div className="cart-page">
         <Header />
-        <div style={styles.content}>
+        <div className="cart-empty">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={styles.emptyState}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="empty-content"
           >
-            <div style={styles.emptyIcon}>🛒</div>
-            <h2 style={styles.emptyTitle}>Tu carrito está vacío</h2>
-            <p style={styles.emptyText}>
+            <div className="empty-icon">🛒</div>
+            <h2 className="empty-title">Tu carrito está vacío</h2>
+            <p className="empty-description">
               ¡Agrega deliciosos platillos y comienza tu pedido!
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/home")}
-              style={styles.exploreButton}
+              className="empty-button"
             >
-              <span style={{ marginRight: "8px" }}>🍽️</span>
+              <span className="button-icon">🍽️</span>
               Explorar Restaurantes
             </motion.button>
           </motion.div>
@@ -216,256 +230,287 @@ export default function Carrito() {
   }
 
   return (
-    <div style={styles.container}>
+    <div className="cart-page">
       <Header />
-      <div style={styles.content} className="carrito-content">
+
+      <div className="cart-container">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          style={styles.header}
-          className="carrito-header"
+          className="cart-header"
         >
-          <h1 style={styles.title} className="carrito-title">
-            <span style={{ fontSize: "32px", marginRight: "12px" }}>🛒</span>
-            Mi Carrito
-          </h1>
+          <div className="header-left">
+            <h1 className="cart-title">
+              <span className="title-icon">🛒</span>
+              Mi Carrito
+            </h1>
+            <p className="cart-subtitle">
+              {resumen?.total_items}{" "}
+              {resumen?.total_items === 1 ? "producto" : "productos"}
+            </p>
+          </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={vaciarCarrito}
-            style={styles.clearButton}
-            className="carrito-clear-button"
+            className="clear-cart-btn"
           >
-            🗑️ Vaciar
+            <span>🗑️</span>
+            Vaciar
           </motion.button>
         </motion.div>
 
-        <div style={styles.mainGrid} className="carrito-main-grid">
-          {/* Columna de items */}
-          <div style={styles.itemsColumn}>
-            {/* Información del restaurante */}
+        <div className="cart-grid">
+          {/* Items Column */}
+          <div className="items-column">
+            {/* Restaurant Banner */}
             {resumen && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                style={styles.restaurantBanner}
-                className="carrito-restaurant-banner"
+                className="restaurant-banner"
               >
-                <div style={styles.restaurantInfo}>
-                  <span
-                    style={styles.restaurantEmoji}
-                    className="carrito-restaurant-emoji"
-                  >
-                    {resumen.restaurante_emoji}
-                  </span>
-                  <div>
-                    <h2
-                      style={styles.restaurantName}
-                      className="carrito-restaurant-name"
-                    >
-                      {resumen.restaurante_nombre}
-                    </h2>
-                    <p style={styles.restaurantStats}>
-                      ⏱️ {resumen.tiempo_entrega_estimado} min · 🚚 L
-                      {resumen.costo_envio.toFixed(2)}
-                    </p>
-                  </div>
+                <div className="banner-emoji">{resumen.restaurante_emoji}</div>
+                <div className="banner-info">
+                  <h3 className="banner-name">{resumen.restaurante_nombre}</h3>
+                  <p className="banner-meta">
+                    <span>⏱️ {resumen.tiempo_entrega_estimado} min</span>
+                    <span>•</span>
+                    <span>🚚 L {resumen.costo_envio.toFixed(2)}</span>
+                  </p>
                 </div>
               </motion.div>
             )}
 
-            {/* Items del carrito */}
-            <AnimatePresence>
-              {items.map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ delay: index * 0.05 }}
-                  style={styles.itemCard}
-                  className="carrito-item-card"
-                >
-                  <div
-                    style={styles.itemContent}
-                    className="carrito-item-content"
+            {/* Items List */}
+            <div className="items-list">
+              <AnimatePresence>
+                {items.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="cart-item"
                   >
                     {item.platillo_imagen && (
-                      <div style={styles.imageContainer}>
+                      <div className="item-image-wrapper">
                         <img
                           src={item.platillo_imagen}
                           alt={item.platillo_nombre}
-                          style={styles.itemImage}
-                          className="carrito-item-image"
+                          className="item-image"
                         />
                         {!item.platillo_disponible && (
-                          <div style={styles.unavailableBadge}>
-                            No disponible
-                          </div>
+                          <div className="unavailable-badge">No disponible</div>
                         )}
                       </div>
                     )}
 
-                    <div style={styles.itemDetails}>
-                      <h3 style={styles.itemName} className="carrito-item-name">
-                        {item.platillo_nombre}
-                      </h3>
-                      <p style={styles.itemDescription}>
+                    <div className="item-details">
+                      <h4 className="item-name">{item.platillo_nombre}</h4>
+                      <p className="item-description">
                         {item.platillo_descripcion}
                       </p>
-                      <p style={styles.itemPrice}>
+                      <p className="item-price">
                         L {item.precio_unitario.toFixed(2)}
                       </p>
 
                       {item.notas && (
-                        <div style={styles.notesBox}>
-                          <span style={{ marginRight: "4px" }}>📝</span>
+                        <div className="item-notes">
+                          <span>📝</span>
                           {item.notas}
                         </div>
                       )}
 
-                      <div
-                        style={styles.itemActions}
-                        className="carrito-item-actions"
-                      >
-                        <div
-                          style={styles.quantityControl}
-                          className="carrito-quantity-control"
-                        >
+                      <div className="item-actions">
+                        <div className="quantity-controls">
                           <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={() =>
                               actualizarCantidad(item.id, item.cantidad - 1)
                             }
                             disabled={item.cantidad <= 1}
-                            style={{
-                              ...styles.quantityButton,
-                              ...(item.cantidad <= 1 &&
-                                styles.quantityButtonDisabled),
-                            }}
+                            className="qty-btn"
                           >
                             −
                           </motion.button>
-                          <span style={styles.quantity}>{item.cantidad}</span>
+                          <span className="qty-value">{item.cantidad}</span>
                           <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={() =>
                               actualizarCantidad(item.id, item.cantidad + 1)
                             }
-                            style={styles.quantityButton}
+                            className="qty-btn"
                           >
                             +
                           </motion.button>
                         </div>
 
-                        <div
-                          style={styles.itemFooter}
-                          className="carrito-item-footer"
-                        >
-                          <span style={styles.subtotal}>
-                            L{item.subtotal.toFixed(2)}
+                        <div className="item-footer">
+                          <span className="item-subtotal">
+                            L {item.subtotal.toFixed(2)}
                           </span>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => eliminarItem(item.id)}
-                            style={styles.deleteButton}
+                            className="delete-btn"
                           >
                             🗑️
                           </motion.button>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Columna de resumen y checkout */}
-          <div style={styles.summaryColumn} className="carrito-summary-column">
+          {/* Checkout Column */}
+          <div className="checkout-column">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              style={styles.summaryCard}
-              className="carrito-summary-card"
+              className="checkout-card"
             >
-              <h2 style={styles.summaryTitle}>📍 Datos de Entrega</h2>
+              {/* Delivery Info */}
+              <div className="checkout-section">
+                <h3 className="section-title">
+                  <span>📍</span>
+                  Datos de Entrega
+                </h3>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Dirección de entrega *</label>
-                <input
-                  type="text"
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  placeholder="Calle, número, colonia..."
-                  style={styles.input}
-                />
+                <div className="form-group">
+                  <label className="form-label">Dirección de entrega *</label>
+                  <input
+                    type="text"
+                    value={direccion}
+                    onChange={(e) => setDireccion(e.target.value)}
+                    placeholder="Calle, número, colonia..."
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Notas adicionales</label>
+                  <textarea
+                    value={notas}
+                    onChange={(e) => setNotas(e.target.value)}
+                    placeholder="Indicaciones, referencias..."
+                    rows={3}
+                    className="form-textarea"
+                  />
+                </div>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Notas adicionales (opcional)</label>
-                <textarea
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Indicaciones, referencias, etc."
-                  rows={3}
-                  style={{ ...styles.input, ...styles.textarea }}
-                />
+              <div className="section-divider" />
+
+              {/* Payment Methods */}
+              <div className="checkout-section">
+                <h3 className="section-title">
+                  <span>💳</span>
+                  Método de Pago
+                </h3>
+
+                <div className="payment-options">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setMetodoPago("tarjeta")}
+                    className={`payment-option ${metodoPago === "tarjeta" ? "active" : ""}`}
+                  >
+                    <div className="payment-icon">💳</div>
+                    <div className="payment-text">
+                      <div className="payment-name">Tarjeta</div>
+                      <div className="payment-desc">Débito o Crédito</div>
+                    </div>
+                    {metodoPago === "tarjeta" && (
+                      <div className="payment-check">✓</div>
+                    )}
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setMetodoPago("transferencia")}
+                    className={`payment-option ${metodoPago === "transferencia" ? "active" : ""}`}
+                  >
+                    <div className="payment-icon">🏦</div>
+                    <div className="payment-text">
+                      <div className="payment-name">Transferencia</div>
+                      <div className="payment-desc">Bancaria</div>
+                    </div>
+                    {metodoPago === "transferencia" && (
+                      <div className="payment-check">✓</div>
+                    )}
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setMetodoPago("efectivo")}
+                    className={`payment-option ${metodoPago === "efectivo" ? "active" : ""}`}
+                  >
+                    <div className="payment-icon">💵</div>
+                    <div className="payment-text">
+                      <div className="payment-name">Efectivo</div>
+                      <div className="payment-desc">Pago al recibir</div>
+                    </div>
+                    {metodoPago === "efectivo" && (
+                      <div className="payment-check">✓</div>
+                    )}
+                  </motion.div>
+                </div>
               </div>
 
-              <div style={styles.divider} />
+              <div className="section-divider" />
 
-              <div style={styles.summarySection}>
-                <h3 style={styles.summarySubtitle}>Resumen del Pedido</h3>
+              {/* Summary */}
+              <div className="checkout-section">
+                <h3 className="section-title">Resumen del Pedido</h3>
 
-                <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>
+                <div className="summary-row">
+                  <span className="summary-label">
                     Subtotal ({resumen?.total_items} productos)
                   </span>
-                  <span style={styles.summaryValue}>
+                  <span className="summary-value">
                     L {resumen?.subtotal_productos.toFixed(2)}
                   </span>
                 </div>
 
-                <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>Costo de envío</span>
-                  <span style={styles.summaryValue}>
+                <div className="summary-row">
+                  <span className="summary-label">Costo de envío</span>
+                  <span className="summary-value">
                     L {resumen?.costo_envio.toFixed(2)}
                   </span>
                 </div>
 
-                <div style={styles.divider} />
+                <div className="section-divider" />
 
-                <div style={styles.totalRow}>
-                  <span style={styles.totalLabel}>Total</span>
-                  <span
-                    style={styles.totalValue}
-                    className="carrito-total-value"
-                  >
+                <div className="total-row">
+                  <span className="total-label">Total</span>
+                  <span className="total-value">
                     L {resumen?.total_carrito.toFixed(2)}
                   </span>
                 </div>
 
                 {resumen && (
-                  <div style={styles.estimatedTime}>
+                  <div className="estimated-time">
                     ⏱️ Tiempo estimado: {resumen.tiempo_entrega_estimado} min
                   </div>
                 )}
               </div>
 
+              {/* Checkout Button */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={crearPedido}
                 disabled={creandoPedido || !direccion.trim()}
-                style={{
-                  ...styles.checkoutButton,
-                  ...(creandoPedido || !direccion.trim()
-                    ? styles.checkoutButtonDisabled
-                    : {}),
-                }}
-                className="carrito-checkout-button"
+                className={`checkout-btn ${creandoPedido || !direccion.trim() ? "disabled" : ""}`}
               >
                 {creandoPedido ? (
                   <>
@@ -476,7 +521,7 @@ export default function Carrito() {
                         repeat: Infinity,
                         ease: "linear",
                       }}
-                      style={{ display: "inline-block", marginRight: "8px" }}
+                      className="btn-icon"
                     >
                       ⏳
                     </motion.span>
@@ -484,7 +529,7 @@ export default function Carrito() {
                   </>
                 ) : (
                   <>
-                    <span style={{ marginRight: "8px" }}>🚀</span>
+                    <span className="btn-icon">🚀</span>
                     Realizar Pedido
                   </>
                 )}
@@ -513,380 +558,4 @@ export default function Carrito() {
       />
     </div>
   );
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: "100vh",
-    background: "linear-gradient(to bottom, #f9fafb, #ffffff)",
-  },
-  content: {
-    maxWidth: "1400px",
-    margin: "0 auto",
-    padding: "24px",
-    paddingBottom: "100px",
-  },
-  loadingContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "60vh",
-    gap: "16px",
-  },
-  spinner: {
-    fontSize: "48px",
-  },
-  loadingText: {
-    fontSize: "16px",
-    color: "#6b7280",
-    fontWeight: 500,
-  },
-  emptyState: {
-    textAlign: "center",
-    padding: "80px 20px",
-    background: "#ffffff",
-    borderRadius: "24px",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
-    maxWidth: "500px",
-    margin: "40px auto",
-  },
-  emptyIcon: {
-    fontSize: "80px",
-    marginBottom: "24px",
-  },
-  emptyTitle: {
-    fontSize: "28px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "12px",
-  },
-  emptyText: {
-    fontSize: "16px",
-    color: "#6b7280",
-    marginBottom: "32px",
-    lineHeight: "1.6",
-  },
-  exploreButton: {
-    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-    color: "#ffffff",
-    padding: "14px 32px",
-    borderRadius: "12px",
-    border: "none",
-    fontSize: "16px",
-    fontWeight: 600,
-    cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(79, 70, 229, 0.3)",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "24px",
-    flexWrap: "wrap",
-    gap: "16px",
-  },
-  title: {
-    fontSize: "32px",
-    fontWeight: 800,
-    color: "#111827",
-    display: "flex",
-    alignItems: "center",
-  },
-  clearButton: {
-    background: "#fee2e2",
-    color: "#dc2626",
-    padding: "10px 20px",
-    borderRadius: "10px",
-    border: "none",
-    fontSize: "14px",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  mainGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 400px",
-    gap: "24px",
-    alignItems: "start",
-  },
-  itemsColumn: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  restaurantBanner: {
-    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-    borderRadius: "16px",
-    padding: "20px",
-    color: "#ffffff",
-    boxShadow: "0 8px 24px rgba(79, 70, 229, 0.25)",
-  },
-  restaurantInfo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-  },
-  restaurantEmoji: {
-    fontSize: "48px",
-  },
-  restaurantName: {
-    fontSize: "20px",
-    fontWeight: 700,
-    margin: "0 0 8px 0",
-  },
-  restaurantStats: {
-    fontSize: "14px",
-    opacity: 0.95,
-    margin: 0,
-  },
-  itemCard: {
-    background: "#ffffff",
-    borderRadius: "16px",
-    padding: "20px",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-    transition: "all 0.3s ease",
-  },
-  itemContent: {
-    display: "flex",
-    gap: "16px",
-  },
-  imageContainer: {
-    position: "relative",
-    flexShrink: 0,
-  },
-  itemImage: {
-    width: "120px",
-    height: "120px",
-    borderRadius: "12px",
-    objectFit: "cover",
-  },
-  unavailableBadge: {
-    position: "absolute",
-    top: "8px",
-    left: "8px",
-    background: "rgba(220, 38, 38, 0.95)",
-    color: "#ffffff",
-    padding: "4px 8px",
-    borderRadius: "6px",
-    fontSize: "11px",
-    fontWeight: 600,
-  },
-  itemDetails: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-  },
-  itemName: {
-    fontSize: "18px",
-    fontWeight: 700,
-    color: "#111827",
-    margin: "0 0 8px 0",
-  },
-  itemDescription: {
-    fontSize: "14px",
-    color: "#6b7280",
-    margin: "0 0 8px 0",
-    lineHeight: "1.5",
-  },
-  itemPrice: {
-    fontSize: "16px",
-    fontWeight: 600,
-    color: "#4f46e5",
-    margin: "0 0 12px 0",
-  },
-  notesBox: {
-    background: "#fef3c7",
-    padding: "8px 12px",
-    borderRadius: "8px",
-    fontSize: "13px",
-    color: "#92400e",
-    marginBottom: "12px",
-  },
-  itemActions: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "auto",
-  },
-  quantityControl: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    background: "#f3f4f6",
-    borderRadius: "10px",
-    padding: "4px",
-  },
-  quantityButton: {
-    width: "32px",
-    height: "32px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#ffffff",
-    color: "#4f46e5",
-    fontSize: "18px",
-    fontWeight: 600,
-    cursor: "pointer",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-  },
-  quantityButtonDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed",
-  },
-  quantity: {
-    fontSize: "16px",
-    fontWeight: 600,
-    color: "#111827",
-    minWidth: "24px",
-    textAlign: "center",
-  },
-  itemFooter: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-  },
-  subtotal: {
-    fontSize: "20px",
-    fontWeight: 700,
-    color: "#4f46e5",
-  },
-  deleteButton: {
-    background: "transparent",
-    border: "none",
-    fontSize: "20px",
-    cursor: "pointer",
-    padding: "4px",
-  },
-  summaryColumn: {
-    position: "sticky",
-    top: "90px",
-  },
-  summaryCard: {
-    background: "#ffffff",
-    borderRadius: "20px",
-    padding: "28px",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-  },
-  summaryTitle: {
-    fontSize: "20px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "20px",
-  },
-  formGroup: {
-    marginBottom: "20px",
-  },
-  label: {
-    display: "block",
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#374151",
-    marginBottom: "8px",
-  },
-  input: {
-    width: "100%",
-    padding: "12px 16px",
-    border: "2px solid #e5e7eb",
-    borderRadius: "10px",
-    fontSize: "14px",
-    outline: "none",
-    transition: "all 0.2s",
-    boxSizing: "border-box",
-  },
-  textarea: {
-    resize: "vertical",
-    fontFamily: "inherit",
-  },
-  divider: {
-    height: "1px",
-    background: "#e5e7eb",
-    margin: "24px 0",
-  },
-  summarySection: {
-    marginBottom: "24px",
-  },
-  summarySubtitle: {
-    fontSize: "16px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "16px",
-  },
-  summaryRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "12px",
-  },
-  summaryLabel: {
-    fontSize: "14px",
-    color: "#6b7280",
-  },
-  summaryValue: {
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#111827",
-  },
-  totalRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "16px",
-  },
-  totalLabel: {
-    fontSize: "18px",
-    fontWeight: 700,
-    color: "#111827",
-  },
-  totalValue: {
-    fontSize: "24px",
-    fontWeight: 800,
-    color: "#4f46e5",
-  },
-  estimatedTime: {
-    marginTop: "12px",
-    padding: "12px",
-    background: "#f0fdf4",
-    borderRadius: "10px",
-    fontSize: "14px",
-    color: "#166534",
-    textAlign: "center",
-    fontWeight: 600,
-  },
-  checkoutButton: {
-    width: "100%",
-    background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-    color: "#ffffff",
-    padding: "16px",
-    borderRadius: "12px",
-    border: "none",
-    fontSize: "16px",
-    fontWeight: 700,
-    cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(79, 70, 229, 0.3)",
-    marginBottom: "12px",
-  },
-  checkoutButtonDisabled: {
-    background: "#9ca3af",
-    cursor: "not-allowed",
-    boxShadow: "none",
-  },
-  secureText: {
-    fontSize: "13px",
-    color: "#6b7280",
-    textAlign: "center",
-    margin: 0,
-  },
-};
-
-// Media queries con CSS-in-JS
-if (typeof window !== "undefined") {
-  const styleSheet = document.createElement("style");
-  styleSheet.textContent = `
-    @media (max-width: 1024px) {
-      /* Ajustar grid a una columna en tablets */
-    }
-    @media (max-width: 768px) {
-      /* Ajustar para móviles */
-    }
-  `;
-  document.head.appendChild(styleSheet);
 }

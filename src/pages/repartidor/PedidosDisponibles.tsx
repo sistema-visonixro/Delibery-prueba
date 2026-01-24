@@ -47,7 +47,9 @@ export default function PedidosDisponibles() {
     setTomandoPedido(pedidoId);
     try {
       await tomarPedido(pedidoId, usuario.id);
-      showSuccess('¡Pedido asignado! Ve a "Mis Pedidos" para comenzar la entrega.');
+      showSuccess(
+        '¡Pedido asignado! Ve a "Mis Pedidos" para comenzar la entrega.',
+      );
       await cargarPedidos();
     } catch (error) {
       console.error("Error al tomar pedido:", error);

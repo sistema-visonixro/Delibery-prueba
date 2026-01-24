@@ -151,8 +151,8 @@ export default function PerfilRepartidor() {
                 {cambiandoDisponibilidad
                   ? "⏳"
                   : repartidor.disponible
-                  ? "Pausar"
-                  : "Activar"}
+                    ? "Pausar"
+                    : "Activar"}
               </button>
             </div>
           </div>

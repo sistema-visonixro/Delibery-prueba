@@ -50,7 +50,7 @@ export default function DetallePlatillo() {
       const { data, error } = await supabase
         .from("platillos")
         .select(
-          `id,nombre,descripcion,imagen_url,precio,disponible,restaurante_id,restaurantes(id,nombre)`
+          `id,nombre,descripcion,imagen_url,precio,disponible,restaurante_id,restaurantes(id,nombre)`,
         )
         .eq("id", id)
         .single();
@@ -150,7 +150,9 @@ export default function DetallePlatillo() {
       await doAdd(userId, restauranteId || null);
     } catch (err: any) {
       console.error("Error agregarAlCarrito:", err);
-      showError(err?.message || "No se pudo agregar al carrito. Intenta de nuevo.");
+      showError(
+        err?.message || "No se pudo agregar al carrito. Intenta de nuevo.",
+      );
     } finally {
       setAgregando(false);
     }

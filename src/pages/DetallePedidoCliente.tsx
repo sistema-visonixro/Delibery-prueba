@@ -466,7 +466,9 @@ export default function DetallePedidoCliente() {
                     <h3 className="item-name">{item.platillo_nombre}</h3>
                     <p className="item-price">L {item.subtotal.toFixed(2)}</p>
                   </div>
-                  <p className="item-description">{item.platillo_descripcion}</p>
+                  <p className="item-description">
+                    {item.platillo_descripcion}
+                  </p>
                   <div className="item-footer">
                     <p className="item-quantity">
                       Cantidad: {item.cantidad} × L{" "}
