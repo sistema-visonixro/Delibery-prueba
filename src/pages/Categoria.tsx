@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import BottomNav from "../components/BottomNav";
 import BackButton from "../components/BackButton";
 
 interface Platillo {
@@ -51,7 +50,7 @@ export default function Categoria() {
         const { data: plats, error: errP } = await supabase
           .from("platillos")
           .select(
-            "id,nombre,descripcion,imagen_url,precio,disponible,restaurante_id,restaurantes(id,nombre)"
+            "id,nombre,descripcion,imagen_url,precio,disponible,restaurante_id,restaurantes(id,nombre)",
           )
           .eq("categoria_id", id)
           .order("nombre", { ascending: true });
@@ -72,14 +71,14 @@ export default function Categoria() {
               restaurantes: p.restaurantes
                 ? { id: p.restaurantes.id, nombre: p.restaurantes.nombre }
                 : null,
-            }))
+            })),
           );
         }
 
         const { data: bebs, error: errB } = await supabase
           .from("bebidas")
           .select(
-            "id,nombre,descripcion,imagen_url,precio,tamano,temperatura,disponible,restaurante_id,restaurantes(id,nombre)"
+            "id,nombre,descripcion,imagen_url,precio,tamano,temperatura,disponible,restaurante_id,restaurantes(id,nombre)",
           )
           .eq("categoria_id", id)
           .order("nombre", { ascending: true });
@@ -102,7 +101,7 @@ export default function Categoria() {
               restaurantes: b.restaurantes
                 ? { id: b.restaurantes.id, nombre: b.restaurantes.nombre }
                 : null,
-            }))
+            })),
           );
         }
       } catch (err) {
@@ -132,7 +131,10 @@ export default function Categoria() {
           zIndex: 30,
         }}
       >
-        <BackButton onClick={() => navigate(-1)} style={{ position: 'relative', top: 0, left: 0 }} />
+        <BackButton
+          onClick={() => navigate(-1)}
+          style={{ position: "relative", top: 0, left: 0 }}
+        />
 
         <h2
           style={{ fontSize: 24, fontWeight: 800, color: "#111827", margin: 0 }}
@@ -329,8 +331,6 @@ export default function Categoria() {
           </>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

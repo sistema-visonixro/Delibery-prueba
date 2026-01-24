@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import BottomNav from "../components/BottomNav";
 
 interface Categoria {
   id: string;
@@ -168,8 +167,6 @@ export default function Categorias() {
           </div>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

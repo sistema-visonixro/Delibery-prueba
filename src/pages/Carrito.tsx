@@ -4,7 +4,6 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "../components/Header";
-import BottomNav from "../components/BottomNav";
 import "./Carrito.css";
 
 interface ItemCarrito {
@@ -174,7 +173,6 @@ export default function Carrito() {
           </motion.div>
           <p style={styles.loadingText}>Cargando tu carrito...</p>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -205,7 +203,6 @@ export default function Carrito() {
             </motion.button>
           </motion.div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -488,7 +485,6 @@ export default function Carrito() {
           </div>
         </div>
       </div>
-      <BottomNav />
     </div>
   );
 }

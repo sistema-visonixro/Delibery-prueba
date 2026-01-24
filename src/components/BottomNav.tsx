@@ -54,22 +54,23 @@ export default function BentoNav() {
             <div style={backdropStyle} />
           </Transition.Child>
 
-          <div style={sheetWrapper}>
+          {/* Sheet desde arriba */}
+          <div style={sheetWrapperTop}>
             <Transition.Child
               as={Fragment}
               enter="transform transition ease-in-out duration-400"
-              enterFrom="translate-y-full"
+              enterFrom="-translate-y-full"
               enterTo="translate-y-0"
               leave="transform transition ease-in-out duration-300"
               leaveFrom="translate-y-0"
-              leaveTo="translate-y-full"
+              leaveTo="-translate-y-full"
             >
-              <Dialog.Panel style={bentoSheet}>
+              <Dialog.Panel style={bentoSheetTop}>
                 {/* Pull Indicator */}
                 <div style={handleBar} />
 
                 {/* User Profile Glass Card */}
-                <div style={userCard}>
+                <div style={userCardTop}>
                   <div style={avatarHex}>
                     {usuario?.email?.[0].toUpperCase()}
                   </div>
@@ -89,15 +90,13 @@ export default function BentoNav() {
                 </div>
 
                 {/* Bento Grid 2.0 */}
-                <div style={bentoGrid}>
+                <div style={bentoGridTop}>
                   {/* Item Grande: Home */}
                   <button
                     onClick={() => handleAction("/home")}
                     style={{
-                      ...gridItem,
+                      ...gridItemTopAccent,
                       gridColumn: "span 2",
-                      background: "#c0c9d8ff",
-                      color: "#fff",
                     }}
                   >
                     <div style={iconBoxDark}>🏠</div>
@@ -111,17 +110,23 @@ export default function BentoNav() {
                   {/* Items Medianos */}
                   <button
                     onClick={() => handleAction("/restaurantes")}
-                    style={{ ...gridItem, border: "1px solid #e2e8f0" }}
+                    style={{
+                      ...gridItemTop,
+                      border: "1px solid rgba(0,0,0,0.05)",
+                    }}
                   >
-                    <span style={iconCircle}>🍽️</span>
+                    <span style={iconCircleTop}>🍽️</span>
                     <span style={gridLabel}>Locales</span>
                   </button>
 
                   <button
                     onClick={() => handleAction("/comidas")}
-                    style={{ ...gridItem, border: "1px solid #e2e8f0" }}
+                    style={{
+                      ...gridItemTop,
+                      border: "1px solid rgba(0,0,0,0.05)",
+                    }}
                   >
-                    <span style={iconCircle}>🍛</span>
+                    <span style={iconCircleTop}>🍛</span>
                     <span style={gridLabel}>Menú</span>
                   </button>
 
@@ -129,12 +134,11 @@ export default function BentoNav() {
                   <button
                     onClick={() => handleAction("/pedidos")}
                     style={{
-                      ...gridItem,
+                      ...gridItemTop,
                       gridColumn: "span 2",
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      background: "#f8fafc",
                     }}
                   >
                     <div
@@ -144,7 +148,7 @@ export default function BentoNav() {
                         gap: "15px",
                       }}
                     >
-                      <span style={iconCircle}>📦</span>
+                      <span style={iconCircleTop}>📦</span>
                       <div style={{ textAlign: "left" }}>
                         <span style={gridLabel}>Mis Pedidos</span>
                         <p style={gridSub}>Rastreo en tiempo real</p>
@@ -157,24 +161,24 @@ export default function BentoNav() {
                   <button
                     onClick={() => handleAction("/carrito")}
                     style={{
-                      ...gridItem,
+                      ...gridItemTop,
                       background: "#f0fdf4",
                       border: "1px solid #dcfce7",
                     }}
                   >
-                    <span style={iconCircle}>🛒</span>
+                    <span style={iconCircleTop}>🛒</span>
                     <span style={gridLabel}>Carrito</span>
                   </button>
 
                   <button
                     onClick={() => handleAction("/mi-cuenta")}
                     style={{
-                      ...gridItem,
+                      ...gridItemTop,
                       background: "#fff",
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid rgba(0,0,0,0.05)",
                     }}
                   >
-                    <span style={iconCircle}>👤</span>
+                    <span style={iconCircleTop}>👤</span>
                     <span style={gridLabel}>Perfil</span>
                   </button>
                 </div>
@@ -200,7 +204,7 @@ const dockContainer: React.CSSProperties = {
   bottom: "30px",
   left: "50%",
   transform: "translateX(-50%)",
-  zIndex: 100,
+  zIndex: 10002,
 };
 
 const mainButtonStyle: React.CSSProperties = {
@@ -215,6 +219,10 @@ const mainButtonStyle: React.CSSProperties = {
   boxShadow: "0 15px 30px -5px rgba(15, 23, 42, 0.4)",
   cursor: "pointer",
 };
+
+// Asegurar que el botón reciba eventos por encima de overlays
+mainButtonStyle.zIndex = 10003;
+mainButtonStyle.pointerEvents = "auto" as any;
 
 const burgerWrapper: React.CSSProperties = { display: "flex", gap: "4px" };
 const dotStyle: React.CSSProperties = {
@@ -231,24 +239,27 @@ const backdropStyle: React.CSSProperties = {
   backdropFilter: "blur(8px)",
 };
 
-const sheetWrapper: React.CSSProperties = {
+// Wrapper para sheet que cae desde arriba
+const sheetWrapperTop: React.CSSProperties = {
   position: "fixed",
-  bottom: 0,
+  top: 0,
   left: 0,
   right: 0,
   display: "flex",
   justifyContent: "center",
+  pointerEvents: "none",
 };
 
-const bentoSheet: React.CSSProperties = {
-  background: "#ffffff",
+const bentoSheetTop: React.CSSProperties = {
+  background: "linear-gradient(180deg,#ffffff,#f8fafc)",
   width: "100%",
-  maxWidth: "420px",
-  maxHeight: "70vh",
-  borderRadius: "28px 28px 0 0",
-  padding: "16px 18px 30px",
-  boxShadow: "0 -20px 50px rgba(0,0,0,0.2)",
-  border: "1px solid rgba(255,255,255,0.3)",
+  maxWidth: "520px",
+  maxHeight: "80vh",
+  borderRadius: "0 0 24px 24px",
+  padding: "18px 18px 28px",
+  boxShadow: "0 20px 50px rgba(2,6,23,0.12)",
+  border: "1px solid rgba(0,0,0,0.04)",
+  pointerEvents: "auto",
 };
 
 const handleBar: React.CSSProperties = {
@@ -259,15 +270,15 @@ const handleBar: React.CSSProperties = {
   margin: "0 auto 18px",
 };
 
-const userCard: React.CSSProperties = {
+const userCardTop: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: "12px",
   padding: "14px 16px",
-  background: "#f8fafc",
-  borderRadius: "18px",
-  marginBottom: "16px",
-  border: "1px solid #f1f5f9",
+  background: "linear-gradient(90deg,#eef2ff,#fff)",
+  borderRadius: "12px",
+  marginBottom: "14px",
+  border: "1px solid rgba(0,0,0,0.03)",
 };
 
 const avatarHex: React.CSSProperties = {
@@ -308,28 +319,40 @@ const exitBtn: React.CSSProperties = {
   cursor: "pointer",
 };
 
-const bentoGrid: React.CSSProperties = {
+const bentoGridTop: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
-  gap: "10px",
+  gap: "12px",
 };
 
-const gridItem: React.CSSProperties = {
+const gridItemTopBase: React.CSSProperties = {
   border: "none",
-  borderRadius: "20px",
-  padding: "18px",
+  borderRadius: "14px",
+  padding: "16px",
   cursor: "pointer",
   display: "flex",
   flexDirection: "column",
   gap: "10px",
-  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  transition: "transform 0.18s ease, box-shadow 0.18s ease",
+  boxShadow: "0 6px 20px rgba(2,6,23,0.04)",
 };
 
-const iconCircle: React.CSSProperties = {
-  width: "38px",
-  height: "38px",
-  background: "#f8fafc",
-  borderRadius: "12px",
+const gridItemTop: React.CSSProperties = {
+  ...gridItemTopBase,
+  background: "#ffffff",
+};
+
+const gridItemTopAccent: React.CSSProperties = {
+  ...gridItemTopBase,
+  background: "linear-gradient(90deg,#6366f1,#a855f7)",
+  color: "white",
+};
+
+const iconCircleTop: React.CSSProperties = {
+  width: "40px",
+  height: "40px",
+  background: "#f1f5f9",
+  borderRadius: "10px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -337,14 +360,15 @@ const iconCircle: React.CSSProperties = {
 };
 
 const iconBoxDark: React.CSSProperties = {
-  width: "38px",
-  height: "38px",
-  background: "rgba(255,255,255,0.1)",
-  borderRadius: "12px",
+  width: "40px",
+  height: "40px",
+  background: "rgba(0,0,0,0.06)",
+  borderRadius: "10px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   fontSize: "18px",
+  color: "white",
 };
 
 const gridLabel: React.CSSProperties = {

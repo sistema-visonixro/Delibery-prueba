@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
-import BottomNav from "../components/BottomNav";
 import "./Pedidos.css";
 
 interface Pedido {
@@ -42,7 +41,7 @@ export default function Pedidos() {
         },
         () => {
           cargarPedidos();
-        }
+        },
       )
       .subscribe();
 
@@ -87,10 +86,16 @@ export default function Pedidos() {
     return (
       <div className="pedidos-page">
         <Header />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "20rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "20rem",
+          }}
+        >
           <div className="loader" />
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -99,16 +104,40 @@ export default function Pedidos() {
     <div className="pedidos-page">
       <Header />
       <div className="pedidos-wrapper">
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>📦 Mis Pedidos</h1>
+        <h1
+          style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}
+        >
+          📦 Mis Pedidos
+        </h1>
 
         {pedidos.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem", background: "#ffffff", borderRadius: 12, boxShadow: "0 6px 18px rgba(15,23,42,0.06)" }}>
-            <p style={{ color: "#6b7280", fontSize: "1.125rem", marginBottom: "1rem" }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "3rem",
+              background: "#ffffff",
+              borderRadius: 12,
+              boxShadow: "0 6px 18px rgba(15,23,42,0.06)",
+            }}
+          >
+            <p
+              style={{
+                color: "#6b7280",
+                fontSize: "1.125rem",
+                marginBottom: "1rem",
+              }}
+            >
               No tienes pedidos activos
             </p>
             <button
               onClick={() => navigate("/home")}
-              style={{ background: "#4f46e5", color: "#fff", padding: "0.5rem 1.25rem", borderRadius: 10, border: "none" }}
+              style={{
+                background: "#4f46e5",
+                color: "#fff",
+                padding: "0.5rem 1.25rem",
+                borderRadius: 10,
+                border: "none",
+              }}
             >
               Hacer un Pedido
             </button>
@@ -121,47 +150,107 @@ export default function Pedidos() {
                 onClick={() => navigate(`/pedido/${pedido.pedido_id}`)}
                 className="pedido-card"
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    marginBottom: 8,
+                  }}
+                >
                   <div>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 6 }}>
+                    <h3
+                      style={{
+                        fontSize: "1rem",
+                        fontWeight: 600,
+                        marginBottom: 6,
+                      }}
+                    >
                       {pedido.restaurante_emoji} {pedido.restaurante_nombre}
                     </h3>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Pedido #{pedido.numero_pedido}</p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                      Pedido #{pedido.numero_pedido}
+                    </p>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "#4f46e5" }}>${pedido.total.toFixed(2)}</p>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>{pedido.total_items} item{pedido.total_items > 1 ? "s" : ""}</p>
+                    <p
+                      style={{
+                        fontSize: "1.125rem",
+                        fontWeight: 700,
+                        color: "#4f46e5",
+                      }}
+                    >
+                      ${pedido.total.toFixed(2)}
+                    </p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                      {pedido.total_items} item
+                      {pedido.total_items > 1 ? "s" : ""}
+                    </p>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: 8 }}>
-                  <span className="pedido-badge">{obtenerTextoEstado(pedido.estado)}</span>
+                  <span className="pedido-badge">
+                    {obtenerTextoEstado(pedido.estado)}
+                  </span>
                 </div>
 
                 {pedido.tiene_repartidor && pedido.repartidor_nombre && (
                   <div className="pedido-repartidor">
-                    <p style={{ fontSize: "0.9rem", color: "#1e3a8a", fontWeight: 600 }}>🚚 Repartidor: {pedido.repartidor_nombre}</p>
+                    <p
+                      style={{
+                        fontSize: "0.9rem",
+                        color: "#1e3a8a",
+                        fontWeight: 600,
+                      }}
+                    >
+                      🚚 Repartidor: {pedido.repartidor_nombre}
+                    </p>
                   </div>
                 )}
 
                 {pedido.tracking_activo && (
                   <div className="pedido-tracking">
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <p style={{ fontSize: "0.9rem", color: "#3730a3", fontWeight: 600 }}>📍 Tracking en vivo disponible</p>
-                      <span style={{ color: "#4f46e5", fontSize: "0.9rem", fontWeight: 700 }}>Ver mapa →</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "0.9rem",
+                          color: "#3730a3",
+                          fontWeight: 600,
+                        }}
+                      >
+                        📍 Tracking en vivo disponible
+                      </p>
+                      <span
+                        style={{
+                          color: "#4f46e5",
+                          fontSize: "0.9rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Ver mapa →
+                      </span>
                     </div>
                   </div>
                 )}
 
                 <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                  {new Date(pedido.creado_en).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}
+                  {new Date(pedido.creado_en).toLocaleString("es-MX", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </p>
               </div>
             ))}
           </div>
         )}
       </div>
-      <BottomNav />
     </div>
   );
 }

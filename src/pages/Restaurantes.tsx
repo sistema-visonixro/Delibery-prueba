@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import type { Restaurante } from "../types/restaurante.types";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import BottomNav from "../components/BottomNav";
 
 // ... interfaces se mantienen igual
 
@@ -112,7 +111,7 @@ export default function Restaurantes() {
               >
                 {f}
               </button>
-            )
+            ),
           )}
         </div>
       </header>
@@ -188,8 +187,6 @@ export default function Restaurantes() {
           </div>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

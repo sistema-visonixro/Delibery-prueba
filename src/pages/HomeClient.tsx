@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
-import BottomNav from "../components/BottomNav";
 import RestaurantCarousel from "../components/RestaurantCarousel";
 import PlatillosCarousel from "../components/PlatillosCarousel";
 
@@ -401,8 +400,6 @@ export default function HomeClient() {
           </div>
         </section>
       </main>
-
-      <BottomNav />
 
       <style>{`@keyframes fadeIn {from { opacity: 0; } to { opacity: 1; }} @keyframes slideDown {from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); }}`}</style>
     </div>

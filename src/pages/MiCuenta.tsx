@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
-import BottomNav from "../components/BottomNav";
 
 export default function MiCuenta() {
   const navigate = useNavigate();
@@ -19,7 +18,7 @@ export default function MiCuenta() {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({
       ...formData,
@@ -430,8 +429,6 @@ export default function MiCuenta() {
           Cerrar sesión
         </button>
       </main>
-
-      <BottomNav />
     </div>
   );
 }
