@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Header from "../components/Header";
 import InfoModal from "../components/InfoModal";
 import { useInfoModal } from "../hooks/useInfoModal";
+import ConfirmModal from "../components/ConfirmModal";
 import "./Carrito.css";
 
 interface ItemCarrito {
@@ -46,6 +47,7 @@ export default function Carrito() {
   const [loading, setLoading] = useState(true);
   const [creandoPedido, setCreandoPedido] = useState(false);
   const { modalState, showWarning, showSuccess, showError, closeModal } = useInfoModal();
+  const [showConfirmVaciar, setShowConfirmVaciar] = useState(false);
 
   // Formulario de pedido
   const [direccion, setDireccion] = useState("");
@@ -117,9 +119,12 @@ export default function Carrito() {
 
   const vaciarCarrito = async () => {
     if (!usuario?.id) return;
+    setShowConfirmVaciar(true);
+  };
 
-    const confirmar = window.confirm("¿Seguro que quieres vaciar el carrito?");
-    if (!confirmar) return;
+  const confirmarVaciarCarrito = async () => {
+    if (!usuario?.id) return;
+    setShowConfirmVaciar(false);
 
     try {
       const { error } = await supabase.rpc("limpiar_carrito_usuario", {
@@ -495,6 +500,16 @@ export default function Carrito() {
         title={modalState.title}
         message={modalState.message}
         type={modalState.type}
+      />
+
+      <ConfirmModal
+        visible={showConfirmVaciar}
+        title="Vaciar Carrito"
+        description="¿Seguro que quieres vaciar el carrito? Esta acción no se puede deshacer."
+        onCancel={() => setShowConfirmVaciar(false)}
+        onConfirm={confirmarVaciarCarrito}
+        confirmLabel="Sí, vaciar"
+        cancelLabel="Cancelar"
       />
     </div>
   );

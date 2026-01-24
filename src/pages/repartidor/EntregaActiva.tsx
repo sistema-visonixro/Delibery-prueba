@@ -11,6 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import MapaTracking from "../../components/MapaTracking";
 import InfoModal from "../../components/InfoModal";
 import { useInfoModal } from "../../hooks/useInfoModal";
+import ConfirmModal from "../../components/ConfirmModal";
 
 export default function EntregaActiva() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
@@ -22,6 +23,7 @@ export default function EntregaActiva() {
   const [loading, setLoading] = useState(true);
   const [entregando, setEntregando] = useState(false);
   const [trackingActivo, setTrackingActivo] = useState(false);
+  const [showConfirmEntrega, setShowConfirmEntrega] = useState(false);
 
   const detenerTrackingRef = useRef<(() => void) | null>(null);
 
@@ -76,12 +78,12 @@ export default function EntregaActiva() {
 
   const handleMarcarEntregado = async () => {
     if (!usuario || !pedidoId) return;
+    setShowConfirmEntrega(true);
+  };
 
-    const confirmacion = window.confirm(
-      "¿Confirmas que el pedido fue entregado al cliente?",
-    );
-
-    if (!confirmacion) return;
+  const confirmarMarcarEntregado = async () => {
+    if (!usuario || !pedidoId) return;
+    setShowConfirmEntrega(false);
 
     setEntregando(true);
     try {
@@ -228,6 +230,16 @@ export default function EntregaActiva() {
         title={modalState.title}
         message={modalState.message}
         type={modalState.type}
+      />
+
+      <ConfirmModal
+        visible={showConfirmEntrega}
+        title="Confirmar Entrega"
+        description="¿Confirmas que el pedido fue entregado al cliente? Esta acción no se puede deshacer."
+        onCancel={() => setShowConfirmEntrega(false)}
+        onConfirm={confirmarMarcarEntregado}
+        confirmLabel="Sí, confirmar"
+        cancelLabel="Cancelar"
       />
     </div>
   );
