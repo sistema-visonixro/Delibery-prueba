@@ -137,7 +137,7 @@ export default function DashboardRepartidor() {
                   Ganancias Hoy
                 </p>
                 <p className="text-4xl font-bold mt-2">
-                  ${panel.ganancias_hoy.toFixed(2)}
+                  L {panel.ganancias_hoy.toFixed(2)}
                 </p>
               </div>
               <FaMoneyBillWave className="text-5xl text-white opacity-20" />
@@ -174,7 +174,7 @@ export default function DashboardRepartidor() {
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-gray-600 text-sm">Ganancias del Mes</p>
               <p className="text-3xl font-bold text-green-600 mt-1">
-                ${panel.ganancias_mes.toFixed(2)}
+                L {panel.ganancias_mes.toFixed(2)}
               </p>
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function DashboardRepartidor() {
                 <div>
                   <p className="text-orange-100 text-sm">Total</p>
                   <p className="text-2xl font-bold">
-                    ${panel.pedido_activo.total.toFixed(2)}
+                    L {panel.pedido_activo.total.toFixed(2)}
                   </p>
                 </div>
               </div>

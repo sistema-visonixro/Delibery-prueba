@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { loginUsuario } from "../lib/supabase";
+import { loginUsuario, registrarUsuario } from "../lib/supabase";
+import { Dialog, Transition } from "@headlessui/react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showRegister, setShowRegister] = useState(false);
+  const [registerData, setRegisterData] = useState({
+    email: "",
+    password: "",
+    nombre: "",
+    telefono: "",
+    direccion: "",
+  });
+  const [registerError, setRegisterError] = useState("");
+  const [registerSuccess, setRegisterSuccess] = useState("");
+  const [registerLoading, setRegisterLoading] = useState(false);
   const { setUsuario } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -23,7 +35,7 @@ export default function Login() {
       const usuario = await loginUsuario(email, password);
       if (usuario) {
         setUsuario(usuario);
-        
+
         // Redireccionar según el tipo de usuario
         switch (usuario.tipo_usuario) {
           case "repartidor":
@@ -51,6 +63,48 @@ export default function Login() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: FormEvent) => {
+    e.preventDefault();
+    setRegisterError("");
+    setRegisterSuccess("");
+    setRegisterLoading(true);
+
+    try {
+      const result = await registrarUsuario(
+        registerData.email,
+        registerData.password,
+        registerData.nombre,
+        registerData.telefono,
+        registerData.direccion,
+      );
+
+      if (result.success) {
+        setRegisterSuccess(result.message);
+        // Esperar 2 segundos y cerrar el modal
+        setTimeout(() => {
+          setShowRegister(false);
+          setRegisterData({
+            email: "",
+            password: "",
+            nombre: "",
+            telefono: "",
+            direccion: "",
+          });
+          setRegisterSuccess("");
+          // Pre-llenar el email en el login
+          setEmail(registerData.email);
+        }, 2000);
+      } else {
+        setRegisterError(result.message);
+      }
+    } catch (err) {
+      setRegisterError("Error al crear la cuenta. Intenta nuevamente.");
+      console.error(err);
+    } finally {
+      setRegisterLoading(false);
     }
   };
 
@@ -458,11 +512,455 @@ export default function Login() {
                 </>
               )}
             </button>
+
+            {/* Botón Crear Cuenta */}
+            <button
+              type="button"
+              onClick={() => setShowRegister(true)}
+              style={{
+                width: "100%",
+                padding: "12px 18px",
+                borderRadius: "10px",
+                background: "transparent",
+                color: isDark ? "#d1d5db" : "#6b7280",
+                fontSize: "14px",
+                fontWeight: 600,
+                border: `2px solid ${isDark ? "#4b5563" : "#e5e7eb"}`,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                transition: "all 0.2s ease",
+                animation: "slideInUp 0.7s ease-out",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = isDark
+                  ? "#9333ea"
+                  : "#9333ea";
+                e.currentTarget.style.color = isDark ? "#a855f7" : "#9333ea";
+                e.currentTarget.style.transform = "scale(1.02)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = isDark
+                  ? "#4b5563"
+                  : "#e5e7eb";
+                e.currentTarget.style.color = isDark ? "#d1d5db" : "#6b7280";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              <span>👤</span>
+              <span>Crear Cuenta Nueva</span>
+            </button>
           </form>
         </div>
 
         {/* Footer */}
       </main>
+
+      {/* Modal de Registro */}
+      <Transition show={showRegister} as={Fragment}>
+        <Dialog
+          as="div"
+          onClose={() => setShowRegister(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 9999 }}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0, 0, 0, 0.5)",
+                backdropFilter: "blur(8px)",
+              }}
+            />
+          </Transition.Child>
+
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "16px",
+              overflowY: "auto",
+            }}
+          >
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel
+                style={{
+                  width: "100%",
+                  maxWidth: "420px",
+                  background: isDark
+                    ? "rgba(31,18,48,0.98)"
+                    : "rgba(255,255,255,0.98)",
+                  backdropFilter: "blur(16px)",
+                  borderRadius: "20px",
+                  padding: "28px 24px",
+                  boxShadow: isDark
+                    ? "0 20px 60px rgba(168,85,247,0.3)"
+                    : "0 20px 60px rgba(0,0,0,0.2)",
+                  border: isDark
+                    ? "1px solid rgba(139,92,246,0.2)"
+                    : "1px solid rgba(192,132,252,0.2)",
+                  margin: "auto",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "24px",
+                  }}
+                >
+                  <Dialog.Title
+                    style={{
+                      fontSize: "22px",
+                      fontWeight: 800,
+                      color: isDark ? "#f3f4f6" : "#111827",
+                    }}
+                  >
+                    ✨ Crear Cuenta
+                  </Dialog.Title>
+                  <button
+                    onClick={() => setShowRegister(false)}
+                    style={{
+                      background: isDark ? "#374151" : "#f3f4f6",
+                      border: "none",
+                      borderRadius: "8px",
+                      width: "32px",
+                      height: "32px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: "18px",
+                      color: isDark ? "#9ca3af" : "#6b7280",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form
+                  onSubmit={handleRegister}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "14px",
+                  }}
+                >
+                  {registerError && (
+                    <div
+                      style={{
+                        background: isDark ? "rgba(127,29,29,0.4)" : "#fef2f2",
+                        border: `1px solid ${isDark ? "#991b1b" : "#fecaca"}`,
+                        color: isDark ? "#fca5a5" : "#dc2626",
+                        padding: "12px 16px",
+                        borderRadius: "12px",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      ⚠️ {registerError}
+                    </div>
+                  )}
+
+                  {registerSuccess && (
+                    <div
+                      style={{
+                        background: isDark ? "rgba(20,83,45,0.4)" : "#f0fdf4",
+                        border: `1px solid ${isDark ? "#166534" : "#bbf7d0"}`,
+                        color: isDark ? "#86efac" : "#16a34a",
+                        padding: "12px 16px",
+                        borderRadius: "12px",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      ✅ {registerSuccess}
+                    </div>
+                  )}
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: isDark ? "#e5e7eb" : "#374151",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      📧 Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={registerData.email}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          email: e.target.value,
+                        })
+                      }
+                      required
+                      disabled={registerLoading}
+                      placeholder="tu@email.com"
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        border: `2px solid ${isDark ? "#6b21a8" : "#e9d5ff"}`,
+                        background: isDark
+                          ? "rgba(88,28,135,0.18)"
+                          : "rgba(255,255,255,0.64)",
+                        color: isDark ? "#ffffff" : "#111827",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: isDark ? "#e5e7eb" : "#374151",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      🔒 Contraseña *
+                    </label>
+                    <input
+                      type="password"
+                      value={registerData.password}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          password: e.target.value,
+                        })
+                      }
+                      required
+                      disabled={registerLoading}
+                      placeholder="••••••••"
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        border: `2px solid ${isDark ? "#6b21a8" : "#e9d5ff"}`,
+                        background: isDark
+                          ? "rgba(88,28,135,0.18)"
+                          : "rgba(255,255,255,0.64)",
+                        color: isDark ? "#ffffff" : "#111827",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: isDark ? "#e5e7eb" : "#374151",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      👤 Nombre Completo *
+                    </label>
+                    <input
+                      type="text"
+                      value={registerData.nombre}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          nombre: e.target.value,
+                        })
+                      }
+                      required
+                      disabled={registerLoading}
+                      placeholder="Juan Pérez"
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        border: `2px solid ${isDark ? "#6b21a8" : "#e9d5ff"}`,
+                        background: isDark
+                          ? "rgba(88,28,135,0.18)"
+                          : "rgba(255,255,255,0.64)",
+                        color: isDark ? "#ffffff" : "#111827",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: isDark ? "#e5e7eb" : "#374151",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      📱 Teléfono (opcional)
+                    </label>
+                    <input
+                      type="tel"
+                      value={registerData.telefono}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          telefono: e.target.value,
+                        })
+                      }
+                      disabled={registerLoading}
+                      placeholder="+504 1234-5678"
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        border: `2px solid ${isDark ? "#6b21a8" : "#e9d5ff"}`,
+                        background: isDark
+                          ? "rgba(88,28,135,0.18)"
+                          : "rgba(255,255,255,0.64)",
+                        color: isDark ? "#ffffff" : "#111827",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: isDark ? "#e5e7eb" : "#374151",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      📍 Dirección (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={registerData.direccion}
+                      onChange={(e) =>
+                        setRegisterData({
+                          ...registerData,
+                          direccion: e.target.value,
+                        })
+                      }
+                      disabled={registerLoading}
+                      placeholder="Colonia, Calle, #Casa"
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        border: `2px solid ${isDark ? "#6b21a8" : "#e9d5ff"}`,
+                        background: isDark
+                          ? "rgba(88,28,135,0.18)"
+                          : "rgba(255,255,255,0.64)",
+                        color: isDark ? "#ffffff" : "#111827",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={registerLoading}
+                    style={{
+                      width: "100%",
+                      padding: "14px 18px",
+                      borderRadius: "10px",
+                      background: isDark
+                        ? "linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #6366f1 100%)"
+                        : "linear-gradient(135deg, #9333ea 0%, #db2777 50%, #4f46e5 100%)",
+                      color: "#ffffff",
+                      fontSize: "15px",
+                      fontWeight: 700,
+                      border: "none",
+                      cursor: registerLoading ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "10px",
+                      marginTop: "8px",
+                      opacity: registerLoading ? 0.7 : 1,
+                    }}
+                  >
+                    {registerLoading ? (
+                      <>
+                        <svg
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            animation: "spin 1s linear infinite",
+                          }}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            style={{ opacity: 0.25 }}
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            style={{ opacity: 0.75 }}
+                          />
+                        </svg>
+                        <span>Creando cuenta...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Crear Cuenta</span>
+                        <span>✨</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition>
 
       <style>{`
         @keyframes fadeInUp {

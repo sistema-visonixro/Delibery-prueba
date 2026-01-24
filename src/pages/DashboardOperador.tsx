@@ -207,7 +207,7 @@ export default function DashboardOperador() {
           <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
             <p className="text-blue-100 text-sm font-medium">Ingresos Hoy</p>
             <p className="text-3xl font-bold mt-2">
-              ${panel.ingresos_hoy.toFixed(2)}
+              L {panel.ingresos_hoy.toFixed(2)}
             </p>
           </div>
 
@@ -295,7 +295,7 @@ export default function DashboardOperador() {
             <div className="bg-green-50 rounded-xl p-4">
               <p className="text-gray-600 text-sm">Ingresos del Mes</p>
               <p className="text-3xl font-bold text-green-600 mt-1">
-                ${panel.ingresos_mes.toFixed(2)}
+                L {panel.ingresos_mes.toFixed(2)}
               </p>
             </div>
           </div>
@@ -327,10 +327,10 @@ export default function DashboardOperador() {
                             pedido.estado === "pendiente"
                               ? "bg-yellow-100 text-yellow-700"
                               : pedido.estado === "confirmado"
-                              ? "bg-blue-100 text-blue-700"
-                              : pedido.estado === "en_preparacion"
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-purple-100 text-purple-700"
+                                ? "bg-blue-100 text-blue-700"
+                                : pedido.estado === "en_preparacion"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-purple-100 text-purple-700"
                           }`}
                         >
                           {pedido.estado}

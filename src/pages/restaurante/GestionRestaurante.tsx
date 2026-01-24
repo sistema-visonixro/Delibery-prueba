@@ -95,7 +95,9 @@ export default function GestionRestaurante() {
           setMensaje("Restaurante creado correctamente");
           setRestaurante(resultado);
         } else {
-          setError("Error al crear el restaurante. Revisa permisos RLS o token autenticado.");
+          setError(
+            "Error al crear el restaurante. Revisa permisos RLS o token autenticado.",
+          );
         }
       }
     } catch (err) {
@@ -106,7 +108,20 @@ export default function GestionRestaurante() {
     }
   };
 
-  const emojis = ["🍽️", "🍕", "🍔", "🍜", "🍣", "🌮", "🍗", "🍱", "🥘", "🍝", "🥗", "🍛"];
+  const emojis = [
+    "🍽️",
+    "🍕",
+    "🍔",
+    "🍜",
+    "🍣",
+    "🌮",
+    "🍗",
+    "🍱",
+    "🥘",
+    "🍝",
+    "🥗",
+    "🍛",
+  ];
   const colores = [
     "#ff6b6b",
     "#ee5a6f",
@@ -155,7 +170,9 @@ export default function GestionRestaurante() {
             <h1 className="text-3xl font-bold text-gray-800">
               {restaurante ? "Editar Restaurante" : "Crear Restaurante"}
             </h1>
-            <p className="text-gray-600">Configura la información de tu negocio</p>
+            <p className="text-gray-600">
+              Configura la información de tu negocio
+            </p>
           </div>
         </div>
 
@@ -173,7 +190,10 @@ export default function GestionRestaurante() {
         )}
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl shadow-lg p-6"
+        >
           {/* Preview */}
           <div
             className="rounded-xl p-6 mb-6 text-white"
@@ -182,16 +202,19 @@ export default function GestionRestaurante() {
             <div className="flex items-center space-x-4">
               <div className="text-6xl">{emoji}</div>
               <div>
-                <h2 className="text-2xl font-bold">{nombre || "Nombre del Restaurante"}</h2>
-                <p className="text-sm opacity-90">{descripcion || "Descripción del restaurante"}</p>
+                <h2 className="text-2xl font-bold">
+                  {nombre || "Nombre del Restaurante"}
+                </h2>
+                <p className="text-sm opacity-90">
+                  {descripcion || "Descripción del restaurante"}
+                </p>
                 <div className="flex items-center space-x-3 mt-2">
                   <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">
                     <FaClock className="inline mr-1" />
                     {tiempoEntrega} min
                   </span>
                   <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">
-                    <FaTruck className="inline mr-1" />
-                    ${costoEnvio}
+                    <FaTruck className="inline mr-1" />${costoEnvio}
                   </span>
                 </div>
               </div>
@@ -265,7 +288,9 @@ export default function GestionRestaurante() {
                     type="button"
                     onClick={() => setEmoji(e)}
                     className={`text-3xl p-3 rounded-xl hover:bg-gray-100 transition ${
-                      emoji === e ? "bg-orange-100 ring-2 ring-orange-500" : "bg-gray-50"
+                      emoji === e
+                        ? "bg-orange-100 ring-2 ring-orange-500"
+                        : "bg-gray-50"
                     }`}
                   >
                     {e}
@@ -286,7 +311,9 @@ export default function GestionRestaurante() {
                     type="button"
                     onClick={() => setColorTema(color)}
                     className={`w-12 h-12 rounded-xl transition ${
-                      colorTema === color ? "ring-4 ring-gray-400 scale-110" : ""
+                      colorTema === color
+                        ? "ring-4 ring-gray-400 scale-110"
+                        : ""
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -312,7 +339,7 @@ export default function GestionRestaurante() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Costo de Envío ($)
+                  Costo de Envío (Lps)
                 </label>
                 <input
                   type="number"
@@ -328,9 +355,13 @@ export default function GestionRestaurante() {
             {/* Estado */}
             <div className="flex items-center justify-between bg-gray-50 p-4 rounded-xl">
               <div>
-                <p className="font-semibold text-gray-800">Estado del Restaurante</p>
+                <p className="font-semibold text-gray-800">
+                  Estado del Restaurante
+                </p>
                 <p className="text-sm text-gray-600">
-                  {activo ? "Abierto y aceptando pedidos" : "Cerrado temporalmente"}
+                  {activo
+                    ? "Abierto y aceptando pedidos"
+                    : "Cerrado temporalmente"}
                 </p>
               </div>
               <button
@@ -363,7 +394,9 @@ export default function GestionRestaurante() {
                 ) : (
                   <>
                     <FaSave className="mr-2" />
-                    {restaurante ? "Actualizar Restaurante" : "Crear Restaurante"}
+                    {restaurante
+                      ? "Actualizar Restaurante"
+                      : "Crear Restaurante"}
                   </>
                 )}
               </button>

@@ -283,14 +283,17 @@ export default function MapaTracking({
         gap: "16px",
         width: "100%",
         height: "100%",
+        background: "#1f2937",
+        padding: "16px",
+        borderRadius: "8px",
       }}
     >
       {/* Información de tracking */}
       {ubicaciones.repartidor && (
         <div
           style={{
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
+            background: "#374151",
+            border: "1px solid #4b5563",
             borderRadius: "8px",
             padding: "16px",
           }}
@@ -303,10 +306,10 @@ export default function MapaTracking({
             }}
           >
             <div>
-              <p style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0 }}>
+              <p style={{ fontSize: "0.875rem", color: "#d1d5db", margin: 0 }}>
                 Repartidor actualizado:
               </p>
-              <p style={{ fontWeight: 600, margin: 0 }}>
+              <p style={{ fontWeight: 600, margin: 0, color: "#f3f4f6" }}>
                 {Math.floor(
                   (Date.now() -
                     new Date(ubicaciones.repartidor.actualizado_en).getTime()) /
@@ -318,11 +321,11 @@ export default function MapaTracking({
             {ubicaciones.repartidor.velocidad && (
               <div>
                 <p
-                  style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0 }}
+                  style={{ fontSize: "0.875rem", color: "#d1d5db", margin: 0 }}
                 >
                   Velocidad:
                 </p>
-                <p style={{ fontWeight: 600, margin: 0 }}>
+                <p style={{ fontWeight: 600, margin: 0, color: "#f3f4f6" }}>
                   {ubicaciones.repartidor.velocidad.toFixed(1)} km/h
                 </p>
               </div>
@@ -349,8 +352,8 @@ export default function MapaTracking({
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
 
           {/* Marcador del Cliente */}
@@ -419,6 +422,7 @@ export default function MapaTracking({
           justifyContent: "center",
           gap: "24px",
           fontSize: "0.875rem",
+          color: "#f3f4f6",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

@@ -110,25 +110,19 @@ export default function BentoNav() {
                   {/* Items Medianos */}
                   <button
                     onClick={() => handleAction("/restaurantes")}
-                    style={{
+                       style={{
                       ...gridItemTop,
-                      border: "1px solid rgba(0,0,0,0.05)",
+                      gridColumn: "span 2",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
                   >
                     <span style={iconCircleTop}>🍽️</span>
                     <span style={gridLabel}>Locales</span>
                   </button>
 
-                  <button
-                    onClick={() => handleAction("/comidas")}
-                    style={{
-                      ...gridItemTop,
-                      border: "1px solid rgba(0,0,0,0.05)",
-                    }}
-                  >
-                    <span style={iconCircleTop}>🍛</span>
-                    <span style={gridLabel}>Menú</span>
-                  </button>
+                
 
                   {/* Item Largo: Pedidos */}
                   <button

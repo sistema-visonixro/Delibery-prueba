@@ -231,7 +231,7 @@ export default function DetallePedidoCliente() {
               </p>
             </div>
             <div style={{ textAlign: "right" }}>
-              <p className="total-amount">${pedido.total.toFixed(2)}</p>
+              <p className="total-amount">L {pedido.total.toFixed(2)}</p>
               <p style={{ color: "#6b7280" }}>{pedido.total_items} items</p>
               <div style={{ marginTop: 8 }}>
                 <button
@@ -532,7 +532,7 @@ export default function DetallePedidoCliente() {
                       {item.platillo_nombre}
                     </h3>
                     <p style={{ margin: 0, fontWeight: 800, color: "#4f46e5" }}>
-                      ${item.subtotal.toFixed(2)}
+                      L {item.subtotal.toFixed(2)}
                     </p>
                   </div>
                   <p style={{ margin: "6px 0", color: "#6b7280" }}>
@@ -563,7 +563,9 @@ export default function DetallePedidoCliente() {
 
           <div className="total-row">
             <span>Total:</span>
-            <span style={{ color: "#4f46e5" }}>${pedido.total.toFixed(2)}</span>
+            <span style={{ color: "#4f46e5" }}>
+              L {pedido.total.toFixed(2)}
+            </span>
           </div>
         </div>
 

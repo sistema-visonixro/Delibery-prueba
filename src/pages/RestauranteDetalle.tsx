@@ -188,14 +188,11 @@ export default function RestauranteDetalle() {
 
         <div style={heroContent}>
           <div style={headerBadge}>Populares hoy</div>
-          <h1 style={titleStyle}>{restaurante.nombre}</h1>
-          <div style={metaRow}>
-            <span>⭐ {restaurante.calificacion.toFixed(1)}</span>
-            <span>•</span>
-            <span>{restaurante.tiempo_entrega_min} min</span>
-            <span>•</span>
-            <span>Envío ${restaurante.costo_envio}</span>
-          </div>
+          <h1 style={{ ...titleStyle, color: "#ffffff" }}>
+            {restaurante.nombre}
+          </h1>
+
+          <div style={metaRow}> </div>
         </div>
       </div>
 
@@ -221,7 +218,7 @@ export default function RestauranteDetalle() {
                   alt={p.nombre}
                   style={tileImage}
                 />
-                <div style={priceTag}>${p.precio.toFixed(2)}</div>
+                <div style={priceTag}>L {p.precio.toFixed(2)}</div>
               </div>
 
               <div style={tileBody}>

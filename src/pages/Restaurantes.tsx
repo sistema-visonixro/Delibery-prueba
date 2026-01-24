@@ -57,29 +57,6 @@ export default function Restaurantes() {
     >
       {/* Header Estilo Neumórfico Suave */}
       <header style={headerStyle}>
-        <div style={topBarStyle}>
-          <div>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12,
-                color: "#94a3b8",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}
-            >
-              Entregar en
-            </p>
-            <h2 style={{ margin: 0, fontSize: 16, color: "#1e293b" }}>
-              📍 Mi Ubicación ▼
-            </h2>
-          </div>
-          <div style={avatarCircle}>
-            {restaurantes.length > 0 ? "⚡" : "⏳"}
-          </div>
-        </div>
-
         <div style={searchWrapper}>
           <span style={searchIcon}>🔍</span>
           <input
@@ -146,41 +123,20 @@ export default function Restaurantes() {
                     backgroundImage: `url(${rest.imagen_url})`,
                   }}
                 >
-                  <div style={imageOverlayStyle}>
-                    <div style={timeBadgeStyle}>
-                      🕒 {rest.tiempo_entrega_min} min
-                    </div>
-                  </div>
-                  <div style={emojiCircle}>{rest.emoji}</div>
+                  <div style={imageOverlayStyle} />
                 </div>
 
                 <div style={{ padding: "16px" }}>
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
+                      justifyContent: "flex-start",
                       alignItems: "center",
                     }}
                   >
                     <h3 style={cardTitleStyle}>{rest.nombre}</h3>
-                    <div style={ratingBadge}>
-                      ⭐ {rest.calificacion.toFixed(1)}
-                    </div>
                   </div>
                   <p style={cardDescStyle}>{rest.descripcion}</p>
-
-                  <div style={cardFooterStyle}>
-                    <div
-                      style={{
-                        color: rest.costo_envio === 0 ? "#059669" : "#64748b",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {rest.costo_envio === 0
-                        ? "Envío GRATIS"
-                        : `Costo envío: $${rest.costo_envio}`}
-                    </div>
-                  </div>
                 </div>
               </div>
             ))}
@@ -200,24 +156,6 @@ const headerStyle: React.CSSProperties = {
   top: 0,
   zIndex: 100,
   borderBottom: "1px solid #f1f5f9",
-};
-
-const topBarStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 20,
-};
-
-const avatarCircle: React.CSSProperties = {
-  width: 40,
-  height: 40,
-  borderRadius: "50%",
-  background: "#f1f5f9",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: 20,
 };
 
 const searchWrapper: React.CSSProperties = {
@@ -288,30 +226,6 @@ const imageOverlayStyle: React.CSSProperties = {
   padding: 12,
 };
 
-const timeBadgeStyle: React.CSSProperties = {
-  background: "#fff",
-  padding: "6px 12px",
-  borderRadius: "12px",
-  fontSize: 12,
-  fontWeight: 800,
-  color: "#1e293b",
-};
-
-const emojiCircle: React.CSSProperties = {
-  position: "absolute",
-  bottom: -15,
-  right: 20,
-  width: 45,
-  height: 45,
-  background: "#fff",
-  borderRadius: "50%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: 24,
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-};
-
 const cardTitleStyle: React.CSSProperties = {
   fontSize: 20,
   fontWeight: 900,
@@ -323,22 +237,6 @@ const cardDescStyle: React.CSSProperties = {
   color: "#64748b",
   margin: "8px 0 16px 0",
   lineHeight: 1.4,
-};
-
-const ratingBadge: React.CSSProperties = {
-  background: "#fffbeb",
-  color: "#b45309",
-  padding: "4px 8px",
-  borderRadius: "8px",
-  fontWeight: 800,
-  fontSize: 13,
-  border: "1px solid #fef3c7",
-};
-
-const cardFooterStyle: React.CSSProperties = {
-  paddingTop: 12,
-  borderTop: "1px solid #f8fafc",
-  fontSize: 13,
 };
 
 const LoaderLayout = () => (

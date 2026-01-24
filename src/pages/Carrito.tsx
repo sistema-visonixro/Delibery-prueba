@@ -258,7 +258,7 @@ export default function Carrito() {
                       {resumen.restaurante_nombre}
                     </h2>
                     <p style={styles.restaurantStats}>
-                      ⏱️ {resumen.tiempo_entrega_estimado} min · 🚚 $
+                      ⏱️ {resumen.tiempo_entrega_estimado} min · 🚚 L
                       {resumen.costo_envio.toFixed(2)}
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export default function Carrito() {
                         {item.platillo_descripcion}
                       </p>
                       <p style={styles.itemPrice}>
-                        ${item.precio_unitario.toFixed(2)}
+                        L {item.precio_unitario.toFixed(2)}
                       </p>
 
                       {item.notas && (
@@ -416,14 +416,14 @@ export default function Carrito() {
                     Subtotal ({resumen?.total_items} productos)
                   </span>
                   <span style={styles.summaryValue}>
-                    ${resumen?.subtotal_productos.toFixed(2)}
+                    L {resumen?.subtotal_productos.toFixed(2)}
                   </span>
                 </div>
 
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Costo de envío</span>
                   <span style={styles.summaryValue}>
-                    ${resumen?.costo_envio.toFixed(2)}
+                    L {resumen?.costo_envio.toFixed(2)}
                   </span>
                 </div>
 
@@ -435,7 +435,7 @@ export default function Carrito() {
                     style={styles.totalValue}
                     className="carrito-total-value"
                   >
-                    ${resumen?.total_carrito.toFixed(2)}
+                    L {resumen?.total_carrito.toFixed(2)}
                   </span>
                 </div>
 

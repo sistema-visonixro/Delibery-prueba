@@ -89,8 +89,12 @@ export default function DashboardAdmin() {
         <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-2xl shadow-2xl p-8 mb-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2">👑 Panel de Administración</h1>
-              <p className="text-purple-100 text-lg">Vista completa del sistema Delibery</p>
+              <h1 className="text-4xl font-bold mb-2">
+                👑 Panel de Administración
+              </h1>
+              <p className="text-purple-100 text-lg">
+                Vista completa del sistema Delibery
+              </p>
               <p className="text-sm text-purple-200 mt-2">
                 Actualizado: {new Date(panel.actualizado_en).toLocaleString()}
               </p>
@@ -105,46 +109,66 @@ export default function DashboardAdmin() {
             <FaUsers className="text-3xl mb-2 opacity-80" />
             <p className="text-blue-100 text-sm">Total Usuarios</p>
             <p className="text-4xl font-bold mt-1">{panel.total_usuarios}</p>
-            <p className="text-xs text-blue-200 mt-2">+{panel.usuarios_nuevos_hoy} hoy</p>
+            <p className="text-xs text-blue-200 mt-2">
+              +{panel.usuarios_nuevos_hoy} hoy
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-green-500 to-emerald-700 rounded-xl shadow-lg p-6 text-white">
             <FaShoppingBag className="text-3xl mb-2 opacity-80" />
             <p className="text-green-100 text-sm">Pedidos Totales</p>
-            <p className="text-4xl font-bold mt-1">{panel.total_pedidos_historico}</p>
-            <p className="text-xs text-green-200 mt-2">{panel.pedidos_hoy} hoy</p>
+            <p className="text-4xl font-bold mt-1">
+              {panel.total_pedidos_historico}
+            </p>
+            <p className="text-xs text-green-200 mt-2">
+              {panel.pedidos_hoy} hoy
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-lg p-6 text-white">
             <FaMoneyBillWave className="text-3xl mb-2 opacity-80" />
             <p className="text-purple-100 text-sm">Ingresos Totales</p>
-            <p className="text-3xl font-bold mt-1">${panel.ingresos_totales.toFixed(0)}</p>
-            <p className="text-xs text-purple-200 mt-2">${panel.ingresos_hoy.toFixed(0)} hoy</p>
+            <p className="text-3xl font-bold mt-1">
+              L {panel.ingresos_totales.toFixed(0)}
+            </p>
+            <p className="text-xs text-purple-200 mt-2">
+              L {panel.ingresos_hoy.toFixed(0)} hoy
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-500 to-red-700 rounded-xl shadow-lg p-6 text-white">
             <FaChartLine className="text-3xl mb-2 opacity-80" />
             <p className="text-orange-100 text-sm">Tasa Completación</p>
-            <p className="text-4xl font-bold mt-1">{panel.tasa_completacion_porcentaje}%</p>
+            <p className="text-4xl font-bold mt-1">
+              {panel.tasa_completacion_porcentaje}%
+            </p>
             <p className="text-xs text-orange-200 mt-2">Global</p>
           </div>
         </div>
 
         {/* Métricas del Día */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">📅 Métricas de Hoy</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            📅 Métricas de Hoy
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
               <p className="text-gray-600 text-sm">Pedidos Hoy</p>
-              <p className="text-3xl font-bold text-blue-600">{panel.pedidos_hoy}</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {panel.pedidos_hoy}
+              </p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
               <p className="text-gray-600 text-sm">Ingresos Hoy</p>
-              <p className="text-2xl font-bold text-green-600">${panel.ingresos_hoy.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-green-600">
+                L {panel.ingresos_hoy.toFixed(2)}
+              </p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
               <p className="text-gray-600 text-sm">Ticket Promedio</p>
-              <p className="text-2xl font-bold text-purple-600">${panel.ticket_promedio.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-purple-600">
+                L {panel.ticket_promedio.toFixed(2)}
+              </p>
             </div>
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
               <p className="text-gray-600 text-sm">Tiempo Entrega</p>
@@ -157,7 +181,9 @@ export default function DashboardAdmin() {
 
         {/* Distribución de Estados */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">📊 Distribución de Pedidos</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            📊 Distribución de Pedidos
+          </h2>
           <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
             <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 text-center">
               <p className="text-2xl font-bold text-yellow-700">
@@ -215,7 +241,9 @@ export default function DashboardAdmin() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white bg-opacity-20 rounded-xl p-4">
                 <p className="text-orange-100 text-sm">Activos</p>
-                <p className="text-4xl font-bold">{panel.restaurantes_activos}</p>
+                <p className="text-4xl font-bold">
+                  {panel.restaurantes_activos}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-4">
                 <p className="text-orange-100 text-sm">Total</p>
@@ -224,7 +252,8 @@ export default function DashboardAdmin() {
               <div className="bg-white bg-opacity-20 rounded-xl p-4 col-span-2">
                 <p className="text-orange-100 text-sm">Productos</p>
                 <p className="text-2xl font-bold">
-                  {panel.total_platillos} platillos • {panel.total_bebidas} bebidas
+                  {panel.total_platillos} platillos • {panel.total_bebidas}{" "}
+                  bebidas
                 </p>
               </div>
             </div>
@@ -239,11 +268,15 @@ export default function DashboardAdmin() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white bg-opacity-20 rounded-xl p-4">
                 <p className="text-blue-100 text-sm">Disponibles</p>
-                <p className="text-4xl font-bold">{panel.repartidores_disponibles}</p>
+                <p className="text-4xl font-bold">
+                  {panel.repartidores_disponibles}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-4">
                 <p className="text-blue-100 text-sm">En Entrega</p>
-                <p className="text-4xl font-bold">{panel.repartidores_en_entrega}</p>
+                <p className="text-4xl font-bold">
+                  {panel.repartidores_en_entrega}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-xl p-4">
                 <p className="text-blue-100 text-sm">Total</p>
@@ -260,87 +293,97 @@ export default function DashboardAdmin() {
         </div>
 
         {/* Top Restaurantes */}
-        {panel.top_restaurantes_mes && panel.top_restaurantes_mes.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <div className="flex items-center mb-4">
-              <FaTrophy className="text-yellow-500 text-2xl mr-2" />
-              <h2 className="text-2xl font-bold text-gray-800">
-                🏆 Top 5 Restaurantes del Mes
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {panel.top_restaurantes_mes.map((rest, index) => (
-                <div
-                  key={rest.id}
-                  className={`flex items-center justify-between p-4 rounded-xl ${
-                    index === 0
-                      ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400"
-                      : "bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <span className="text-3xl font-bold text-gray-400">#{index + 1}</span>
-                    <span className="text-3xl">{rest.emoji}</span>
-                    <div>
-                      <p className="font-bold text-gray-800">{rest.nombre}</p>
-                      <p className="text-sm text-gray-600">{rest.total_pedidos} pedidos</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-600">
-                      ${rest.ingresos.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Top Repartidores */}
-        {panel.top_repartidores_mes && panel.top_repartidores_mes.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <div className="flex items-center mb-4">
-              <FaTrophy className="text-blue-500 text-2xl mr-2" />
-              <h2 className="text-2xl font-bold text-gray-800">
-                🏆 Top 5 Repartidores del Mes
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {panel.top_repartidores_mes.map((rep, index) => (
-                <div
-                  key={rep.id}
-                  className={`flex items-center justify-between p-4 rounded-xl ${
-                    index === 0
-                      ? "bg-gradient-to-r from-blue-100 to-indigo-200 border-2 border-blue-400"
-                      : "bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <span className="text-3xl font-bold text-gray-400">#{index + 1}</span>
-                    <div>
-                      <p className="font-bold text-gray-800">{rep.nombre_completo}</p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-sm text-gray-600">
-                          {rep.entregas_mes} entregas
-                        </span>
-                        <span className="text-yellow-500">
-                          ⭐ {rep.calificacion_promedio.toFixed(1)}
-                        </span>
+        {panel.top_restaurantes_mes &&
+          panel.top_restaurantes_mes.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <div className="flex items-center mb-4">
+                <FaTrophy className="text-yellow-500 text-2xl mr-2" />
+                <h2 className="text-2xl font-bold text-gray-800">
+                  🏆 Top 5 Restaurantes del Mes
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {panel.top_restaurantes_mes.map((rest, index) => (
+                  <div
+                    key={rest.id}
+                    className={`flex items-center justify-between p-4 rounded-xl ${
+                      index === 0
+                        ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400"
+                        : "bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <span className="text-3xl font-bold text-gray-400">
+                        #{index + 1}
+                      </span>
+                      <span className="text-3xl">{rest.emoji}</span>
+                      <div>
+                        <p className="font-bold text-gray-800">{rest.nombre}</p>
+                        <p className="text-sm text-gray-600">
+                          {rest.total_pedidos} pedidos
+                        </p>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-green-600">
+                        L {rest.ingresos.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-600">
-                      ${rep.ganancias_mes.toFixed(2)}
-                    </p>
-                    <p className="text-xs text-gray-500">ganancias</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+        {/* Top Repartidores */}
+        {panel.top_repartidores_mes &&
+          panel.top_repartidores_mes.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <div className="flex items-center mb-4">
+                <FaTrophy className="text-blue-500 text-2xl mr-2" />
+                <h2 className="text-2xl font-bold text-gray-800">
+                  🏆 Top 5 Repartidores del Mes
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {panel.top_repartidores_mes.map((rep, index) => (
+                  <div
+                    key={rep.id}
+                    className={`flex items-center justify-between p-4 rounded-xl ${
+                      index === 0
+                        ? "bg-gradient-to-r from-blue-100 to-indigo-200 border-2 border-blue-400"
+                        : "bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <span className="text-3xl font-bold text-gray-400">
+                        #{index + 1}
+                      </span>
+                      <div>
+                        <p className="font-bold text-gray-800">
+                          {rep.nombre_completo}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-sm text-gray-600">
+                            {rep.entregas_mes} entregas
+                          </span>
+                          <span className="text-yellow-500">
+                            ⭐ {rep.calificacion_promedio.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-green-600">
+                        L {rep.ganancias_mes.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">ganancias</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         {/* Estadísticas del Mes */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-6 mb-6 text-white">
@@ -356,11 +399,15 @@ export default function DashboardAdmin() {
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-4">
               <p className="text-indigo-100 text-sm">Completados</p>
-              <p className="text-3xl font-bold">{panel.total_pedidos_completados}</p>
+              <p className="text-3xl font-bold">
+                {panel.total_pedidos_completados}
+              </p>
             </div>
             <div className="bg-white bg-opacity-20 rounded-xl p-4">
               <p className="text-indigo-100 text-sm">Ingresos</p>
-              <p className="text-2xl font-bold">${panel.ingresos_mes.toFixed(2)}</p>
+              <p className="text-2xl font-bold">
+                L {panel.ingresos_mes.toFixed(2)}
+              </p>
             </div>
           </div>
         </div>
@@ -369,7 +416,9 @@ export default function DashboardAdmin() {
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center mb-4">
             <FaClock className="text-blue-500 text-2xl mr-2" />
-            <h2 className="text-2xl font-bold text-gray-800">⏱️ Tiempos de Entrega</h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              ⏱️ Tiempos de Entrega
+            </h2>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 rounded-xl p-4">

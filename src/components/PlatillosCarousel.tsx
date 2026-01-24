@@ -136,7 +136,7 @@ export default function PlatillosCarousel({ platillos }: Props) {
                     color: "#059669",
                   }}
                 >
-                  ${platillo.precio.toFixed(2)}
+                  L {platillo.precio.toFixed(2)}
                 </p>
               )}
               {platillo.restaurante && (

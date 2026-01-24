@@ -75,7 +75,7 @@ export default function EntregaActiva() {
     if (!usuario || !pedidoId) return;
 
     const confirmacion = window.confirm(
-      "¿Confirmas que el pedido fue entregado al cliente?"
+      "¿Confirmas que el pedido fue entregado al cliente?",
     );
 
     if (!confirmacion) return;
@@ -133,7 +133,7 @@ export default function EntregaActiva() {
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold text-indigo-600">
-              ${pedido.total.toFixed(2)}
+              L {pedido.total.toFixed(2)}
             </p>
             <p className="text-sm text-gray-500">{pedido.total_items} items</p>
           </div>

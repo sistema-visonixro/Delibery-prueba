@@ -19,7 +19,7 @@ export interface Usuario {
 
 export const loginUsuario = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<Usuario | null> => {
   try {
     const { data, error } = await supabase
@@ -39,5 +39,57 @@ export const loginUsuario = async (
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
     return null;
+  }
+};
+
+export const registrarUsuario = async (
+  email: string,
+  password: string,
+  nombre: string,
+  telefono?: string,
+  direccion?: string,
+): Promise<{ success: boolean; message: string; usuario?: Usuario }> => {
+  try {
+    // Verificar si el email ya existe
+    const { data: existingUser } = await supabase
+      .from("usuarios")
+      .select("email")
+      .eq("email", email)
+      .single();
+
+    if (existingUser) {
+      return { success: false, message: "Este email ya está registrado" };
+    }
+
+    // Crear el nuevo usuario
+    const { data, error } = await supabase
+      .from("usuarios")
+      .insert([
+        {
+          email,
+          password,
+          nombre,
+          telefono,
+          direccion,
+          tipo_usuario: "cliente",
+          activo: true,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al registrar usuario:", error);
+      return { success: false, message: "Error al crear la cuenta" };
+    }
+
+    return {
+      success: true,
+      message: "Cuenta creada exitosamente",
+      usuario: data as Usuario,
+    };
+  } catch (error) {
+    console.error("Error al registrar usuario:", error);
+    return { success: false, message: "Error al crear la cuenta" };
   }
 };

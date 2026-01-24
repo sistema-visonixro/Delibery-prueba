@@ -97,7 +97,7 @@ export default function MisPedidos() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-indigo-600">
-                      ${pedido.total.toFixed(2)}
+                      L {pedido.total.toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-500">
                       {pedido.total_items} items

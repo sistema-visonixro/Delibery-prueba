@@ -26,7 +26,8 @@ export default function DashboardRestaurante() {
   const [panel, setPanel] = useState<PanelRestaurante | null>(null);
   const [loading, setLoading] = useState(true);
   const [restauranteId, setRestauranteId] = useState<string>("");
-  const [restauranteExistente, setRestauranteExistente] = useState<Restaurante | null>(null);
+  const [restauranteExistente, setRestauranteExistente] =
+    useState<Restaurante | null>(null);
 
   useEffect(() => {
     if (!usuario || usuario.tipo_usuario !== "restaurante") {
@@ -101,25 +102,31 @@ export default function DashboardRestaurante() {
               <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center">
                 <div className="mb-6">
                   <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-orange-400 to-red-500 rounded-full mb-4">
-                    <span className="text-white text-4xl">{restauranteExistente.emoji || '🍽️'}</span>
+                    <span className="text-white text-4xl">
+                      {restauranteExistente.emoji || "🍽️"}
+                    </span>
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-800 mb-1">{restauranteExistente.nombre}</h1>
-                  <p className="text-sm text-gray-600 mb-3">{restauranteExistente.descripcion}</p>
+                  <h1 className="text-2xl font-bold text-gray-800 mb-1">
+                    {restauranteExistente.nombre}
+                  </h1>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {restauranteExistente.descripcion}
+                  </p>
                   <div className="flex items-center justify-center gap-3">
                     <button
-                      onClick={() => navigate('/restaurante/gestion')}
+                      onClick={() => navigate("/restaurante/gestion")}
                       className="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md"
                     >
                       Editar Restaurante
                     </button>
                     <button
-                      onClick={() => navigate('/restaurante/platillos')}
+                      onClick={() => navigate("/restaurante/platillos")}
                       className="bg-orange-500 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-orange-600"
                     >
                       Agregar Platillo
                     </button>
                     <button
-                      onClick={() => navigate('/restaurante/pedidos')}
+                      onClick={() => navigate("/restaurante/pedidos")}
                       className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-600"
                     >
                       Ver Pedidos
@@ -127,9 +134,12 @@ export default function DashboardRestaurante() {
                   </div>
                 </div>
                 <div className="mt-6 text-sm text-gray-600">
-                  <p>Tiempo entrega: {restauranteExistente.tiempo_entrega_min} min</p>
-                  <p>Costo envío: ${restauranteExistente.costo_envio}</p>
-                  <p>Activo: {restauranteExistente.activo ? 'Sí' : 'No'}</p>
+                  <p>
+                    Tiempo entrega: {restauranteExistente.tiempo_entrega_min}{" "}
+                    min
+                  </p>
+                  <p>Costo envío: L {restauranteExistente.costo_envio}</p>
+                  <p>Activo: {restauranteExistente.activo ? "Sí" : "No"}</p>
                 </div>
               </div>
             ) : (
@@ -147,7 +157,8 @@ export default function DashboardRestaurante() {
                       Aún no tienes un restaurante registrado
                     </p>
                     <p className="text-gray-500">
-                      Comienza creando tu restaurante para empezar a recibir pedidos
+                      Comienza creando tu restaurante para empezar a recibir
+                      pedidos
                     </p>
                   </div>
 
@@ -192,15 +203,24 @@ export default function DashboardRestaurante() {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li className="flex items-start gap-2">
                       <span className="text-orange-500 font-bold">•</span>
-                      <span>Podrás editar toda la información de tu restaurante cuando quieras</span>
+                      <span>
+                        Podrás editar toda la información de tu restaurante
+                        cuando quieras
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-orange-500 font-bold">•</span>
-                      <span>Necesitarás agregar al menos un platillo para empezar a recibir pedidos</span>
+                      <span>
+                        Necesitarás agregar al menos un platillo para empezar a
+                        recibir pedidos
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-orange-500 font-bold">•</span>
-                      <span>Los clientes verán tu restaurante una vez que esté activo</span>
+                      <span>
+                        Los clientes verán tu restaurante una vez que esté
+                        activo
+                      </span>
                     </li>
                   </ul>
                 </div>

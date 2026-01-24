@@ -180,7 +180,7 @@ export default function Pedidos() {
                         color: "#4f46e5",
                       }}
                     >
-                      ${pedido.total.toFixed(2)}
+                      L {pedido.total.toFixed(2)}
                     </p>
                     <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
                       {pedido.total_items} item
