@@ -373,6 +373,14 @@ export default function DetallePlatillo() {
         message="Añadido al carrito"
         onClose={() => setShowSuccess(false)}
       />
+
+      <InfoModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }
@@ -450,14 +458,6 @@ function NotFound({ navigate }: { navigate: any }) {
       >
         Volver atrás
       </button>
-
-      <InfoModal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-      />
     </div>
   );
 }
