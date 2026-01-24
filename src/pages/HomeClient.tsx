@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import RestaurantCarousel from "../components/RestaurantCarousel";
 import PlatillosCarousel from "../components/PlatillosCarousel";
+import "./HomeClient.css";
 
 interface Restaurante {
   id: string;
@@ -109,7 +110,6 @@ export default function HomeClient() {
             },
           ]);
         } else {
-          // Filtrar "Mandaditos" de las categorías
           const categoriasFiltradas = (categoriasData || []).filter(
             (cat) => cat.nombre.toLowerCase() !== "mandaditos",
           );
@@ -189,60 +189,52 @@ export default function HomeClient() {
     setSuggestions([...restMatches, ...platMatches]);
   }, [search, restaurantes, platillos]);
 
-  // No mostrar pantalla de carga completa; renderizar layout y dejar que los
-  // componentes manejen su estado (por ejemplo, RestaurantCarousel muestra
-  // un mensaje cuando no hay restaurantes). Esto evita ocultar el `Header`
-  // y el `BottomNav` durante la carga.
-
   return (
-    <div
-      style={{
-        background: "#ffffff",
-        minHeight: "100vh",
-        paddingBottom: "20px",
-        position: "relative",
-      }}
-    >
+    <div className="home-page">
       <Header />
 
-      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "16px" }}>
-        <RestaurantCarousel restaurantes={restaurantes} />
+      <main className="home-main">
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-content">
+            <div className="hero-text">
+              <h1 className="hero-title">
+                ¡Bienvenido a <span className="hero-highlight">Delibery</span>!
+              </h1>
+              <p className="hero-subtitle">
+                Descubre los mejores restaurantes y platillos cerca de ti
+              </p>
+            </div>
+            <div className="hero-emoji">🍕</div>
+          </div>
+        </section>
 
-        <div style={{ marginTop: 12, marginBottom: 18, position: "relative" }}>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-            placeholder="Buscar restaurantes o platillos..."
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              borderRadius: 12,
-              border: "1px solid #e6e7eb",
-              outline: "none",
-              fontSize: 14,
-            }}
-          />
+        {/* Search Bar Mejorada */}
+        <div className="search-container">
+          <div className="search-wrapper">
+            <span className="search-icon">🔍</span>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="Buscar restaurantes o platillos..."
+              className="search-input"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="search-clear"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
           {showSuggestions &&
             search.trim().length > 0 &&
             suggestions.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  left: 0,
-                  right: 0,
-                  background: "rgba(255,255,255,0.98)",
-                  border: "1px solid #e6e7eb",
-                  borderRadius: 12,
-                  boxShadow: "0 8px 24px rgba(2,6,23,0.06)",
-                  zIndex: 40,
-                  maxHeight: 260,
-                  overflow: "auto",
-                }}
-              >
+              <div className="suggestions-dropdown">
                 {suggestions.map((s, idx) => (
                   <div
                     key={idx}
@@ -252,34 +244,21 @@ export default function HomeClient() {
                       else if (s.type === "platillo")
                         navigate(`/platillo/${s.id}`);
                     }}
-                    style={{
-                      padding: "10px 12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 4,
-                      cursor: "pointer",
-                      borderBottom:
-                        idx < suggestions.length - 1
-                          ? "1px solid #f3f4f6"
-                          : "none",
-                    }}
+                    className="suggestion-item"
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div style={{ fontWeight: 700, color: "#0f172a" }}>
+                    <div className="suggestion-header">
+                      <div className="suggestion-name">
+                        {s.type === "restaurante" && s.emoji && (
+                          <span className="suggestion-emoji">{s.emoji}</span>
+                        )}
                         {s.nombre}
                       </div>
-                      <div style={{ fontSize: 13, color: "#6b7280" }}>
+                      <span className="suggestion-type">
                         {s.type === "restaurante" ? "Restaurante" : "Platillo"}
-                      </div>
+                      </span>
                     </div>
                     {s.descripcion && (
-                      <div style={{ fontSize: 13, color: "#6b7280" }}>
+                      <div className="suggestion-description">
                         {s.descripcion}
                       </div>
                     )}
@@ -289,119 +268,59 @@ export default function HomeClient() {
             )}
         </div>
 
+        {/* Restaurantes Carousel */}
+        <RestaurantCarousel restaurantes={restaurantes} />
+
+        {/* Platillos Carousel */}
         <PlatillosCarousel
           platillos={platillos.sort(() => Math.random() - 0.5)}
         />
 
-        <section>
-          <h2
-            style={{
-              fontSize: "24px",
-              fontWeight: 800,
-              color: "#111827",
-              marginBottom: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <span style={{ fontSize: "28px" }}>🍽️</span>
-            ¿Qué se te antoja hoy?
-          </h2>
+        {/* Categorías Section */}
+        <section className="categories-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="section-icon">🍽️</span>
+              ¿Qué se te antoja hoy?
+            </h2>
+            <p className="section-subtitle">
+              Explora nuestras categorías más populares
+            </p>
+          </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-              gap: "14px",
-            }}
-          >
+          <div className="categories-grid">
             {categorias.length > 0 ? (
-              categorias.map((categoria) => (
+              categorias.map((categoria, index) => (
                 <div
                   key={categoria.id}
                   onClick={() => navigate(`/categoria/${categoria.id}`)}
+                  className="category-card"
                   style={{
                     background: `linear-gradient(135deg, ${categoria.color_gradiente_inicio} 0%, ${categoria.color_gradiente_fin} 100%)`,
-                    borderRadius: "16px",
-                    padding: "20px 16px",
-                    position: "relative",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 6px 18px rgba(102,126,234,0.3)",
-                    minHeight: "140px",
-                    clipPath: "ellipse(65% 60% at 30% 35%)",
-                    WebkitClipPath: "ellipse(65% 60% at 30% 35%)",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform =
-                      "translateY(-4px)";
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 8px 24px rgba(102,126,234,0.4)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform =
-                      "translateY(0)";
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 6px 18px rgba(102,126,234,0.3)";
+                    animationDelay: `${index * 0.1}s`,
                   }}
                 >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "-15px",
-                      right: "-15px",
-                      fontSize: "90px",
-                      opacity: 0.15,
-                    }}
-                  >
+                  <div className="category-emoji-bg">
                     {categoria.emoji}
                   </div>
-                  <div style={{ position: "relative", zIndex: 2 }}>
-                    <div style={{ fontSize: "40px", marginBottom: "8px" }}>
+                  <div className="category-content">
+                    <div className="category-emoji-main">
                       {categoria.emoji}
                     </div>
-                    <h3
-                      style={{
-                        color: "#fff",
-                        fontSize: "17px",
-                        fontWeight: 700,
-                        margin: "0 0 6px 0",
-                      }}
-                    >
-                      {categoria.nombre}
-                    </h3>
+                    <h3 className="category-name">{categoria.nombre}</h3>
+                    <div className="category-arrow">→</div>
                   </div>
                 </div>
               ))
             ) : (
-              <div
-                style={{
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  borderRadius: "16px",
-                  padding: "20px 16px",
-                  position: "relative",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  minHeight: "140px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  clipPath: "ellipse(65% 60% at 30% 35%)",
-                  WebkitClipPath: "ellipse(65% 60% at 30% 35%)",
-                }}
-              >
-                Cargando...
+              <div className="category-card category-loading">
+                <div className="loading-spinner"></div>
+                <p>Cargando categorías...</p>
               </div>
             )}
           </div>
         </section>
       </main>
-
-      <style>{`@keyframes fadeIn {from { opacity: 0; } to { opacity: 1; }} @keyframes slideDown {from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); }}`}</style>
     </div>
   );
 }

@@ -28,18 +28,9 @@ export default function BentoNav() {
           variants={hamburgerVariants}
           style={hamburgerContainer}
         >
-          <motion.span
-            variants={topLineVariants}
-            style={hamburgerLine}
-          />
-          <motion.span
-            variants={middleLineVariants}
-            style={hamburgerLine}
-          />
-          <motion.span
-            variants={bottomLineVariants}
-            style={hamburgerLine}
-          />
+          <motion.span variants={topLineVariants} style={hamburgerLine} />
+          <motion.span variants={middleLineVariants} style={hamburgerLine} />
+          <motion.span variants={bottomLineVariants} style={hamburgerLine} />
         </motion.div>
       </motion.button>
 
@@ -83,7 +74,13 @@ export default function BentoNav() {
                       {usuario?.email?.split("@")[0]}
                     </h3>
                   </div>
-                  <button onClick={() => { logout(); setIsOpen(false); }} style={logoutButton}>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
+                    style={logoutButton}
+                  >
                     <span style={logoutIcon}>🚪</span>
                   </button>
                 </div>
@@ -176,7 +173,8 @@ const fabButton: React.CSSProperties = {
   borderRadius: "50%",
   background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
   border: "none",
-  boxShadow: "0 8px 32px rgba(79, 70, 229, 0.4), 0 0 0 0 rgba(79, 70, 229, 0.3)",
+  boxShadow:
+    "0 8px 32px rgba(79, 70, 229, 0.4), 0 0 0 0 rgba(79, 70, 229, 0.3)",
   cursor: "pointer",
   zIndex: 10003,
   display: "flex",
