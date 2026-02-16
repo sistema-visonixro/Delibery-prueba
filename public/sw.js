@@ -1,4 +1,4 @@
-const CACHE_NAME = "delibery-cache-v2";
+const CACHE_NAME = "delibery-cache-v3";
 const urlsToCache = ["/", "/index.html", "/logo.png", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -32,8 +32,19 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  // Ignorar requests de extensiones de navegador y dev tools
+  const url = event.request.url;
+  if (
+    url.startsWith("chrome-extension://") ||
+    url.startsWith("devtools://") ||
+    url.startsWith("moz-extension://") ||
+    url.startsWith("safari-extension://")
+  ) {
+    return;
+  }
+
   // Network first for API calls
-  if (event.request.url.includes("supabase.co")) {
+  if (url.includes("supabase.co") || url.includes("googleapis.com") || url.includes("googleusercontent.com")) {
     event.respondWith(fetch(event.request));
     return;
   }
@@ -46,10 +57,17 @@ self.addEventListener("fetch", (event) => {
         return (
           response ||
           fetch(event.request).then((fetchResponse) => {
-            return caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, fetchResponse.clone());
-              return fetchResponse;
-            });
+            // Solo cachear respuestas exitosas de HTTP/HTTPS
+            if (
+              fetchResponse.ok &&
+              (url.startsWith("http://") || url.startsWith("https://"))
+            ) {
+              return caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, fetchResponse.clone());
+                return fetchResponse;
+              });
+            }
+            return fetchResponse;
           })
         );
       })
