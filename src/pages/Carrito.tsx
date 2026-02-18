@@ -190,6 +190,7 @@ export default function Carrito() {
           {
             usuario_id: usuario.id,
             restaurante_id: restaurante_id,
+            costo_envio: resumen?.costo_envio || 0,
             numero_pedido,
             total,
             estado: "pendiente",
