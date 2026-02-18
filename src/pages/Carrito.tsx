@@ -152,22 +152,95 @@ export default function Carrito() {
 
     setCreandoPedido(true);
     try {
-      const { error } = await supabase.rpc("crear_pedido_desde_carrito", {
-        p_usuario_id: usuario.id,
-        p_direccion_entrega: direccion,
-        p_latitud: 19.4326,
-        p_longitud: -99.1332,
-        p_notas_cliente: notas || null,
-      });
-
-      if (error) throw error;
-
       const metodoPagoTexto =
         metodoPago === "tarjeta"
           ? "Tarjeta"
           : metodoPago === "transferencia"
             ? "Transferencia"
             : "Efectivo";
+
+      // Calcular total a partir de los items y costo de envío
+      const productosTotal = items.reduce((s, it) => s + (it.subtotal || 0), 0);
+      const total = (resumen?.costo_envio || 0) + productosTotal;
+
+      // Obtener restaurante_id desde la tabla carrito (por seguridad)
+      const { data: restos, error: restosError } = await supabase
+        .from("carrito")
+        .select("restaurante_id")
+        .eq("usuario_id", usuario.id)
+        .limit(1);
+
+      if (restosError) throw restosError;
+      const restaurante_id =
+        restos && restos.length > 0 ? restos[0].restaurante_id : null;
+
+      // Generar número de pedido simple (puede colisionar, pero es funcional)
+      const ahora = new Date();
+      const fecha = ahora.toISOString().slice(0, 10).replace(/-/g, "");
+      const random4 = String(Math.floor(Math.random() * 10000)).padStart(
+        4,
+        "0",
+      );
+      const numero_pedido = `PED-${fecha}-${random4}`;
+
+      // Insertar pedido incluyendo tipo_pago
+      const { data: pedidoData, error: pedidoError } = await supabase
+        .from("pedidos")
+        .insert([
+          {
+            usuario_id: usuario.id,
+            restaurante_id: restaurante_id,
+            numero_pedido,
+            total,
+            estado: "pendiente",
+            direccion_entrega: direccion,
+            latitud: 19.4326,
+            longitud: -99.1332,
+            notas_cliente: notas || null,
+            tipo_pago: metodoPagoTexto,
+          },
+        ])
+        .select()
+        .single();
+
+      if (pedidoError) throw pedidoError;
+
+      const pedido_id = pedidoData.id;
+
+      // Insertar detalle_pedidos
+      const detalle = items.map((it) => ({
+        pedido_id,
+        platillo_id: it.platillo_id,
+        cantidad: it.cantidad,
+        precio_unitario: it.precio_unitario,
+        subtotal: it.subtotal,
+        notas: it.notas,
+      }));
+
+      if (detalle.length > 0) {
+        const { error: detalleError } = await supabase
+          .from("detalle_pedidos")
+          .insert(detalle);
+
+        if (detalleError) {
+          // intentar revertir pedido
+          await supabase.from("pedidos").delete().eq("id", pedido_id);
+          throw detalleError;
+        }
+      }
+
+      // Limpiar carrito del usuario
+      const { error: limpiarError } = await supabase
+        .from("carrito")
+        .delete()
+        .eq("usuario_id", usuario.id);
+
+      if (limpiarError) {
+        console.warn(
+          "No se pudo limpiar el carrito automáticamente:",
+          limpiarError,
+        );
+      }
 
       showSuccess(
         `¡Pedido creado exitosamente! 🎉\nMétodo de pago: ${metodoPagoTexto}`,
@@ -497,11 +570,9 @@ export default function Carrito() {
                   </span>
                 </div>
 
-                {resumen && (
-                  <div className="estimated-time">
-                    ⏱️ Tiempo estimado: {resumen.tiempo_entrega_estimado} min
-                  </div>
-                )}
+                
+                
+                
               </div>
 
               {/* Checkout Button */}
