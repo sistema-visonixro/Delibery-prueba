@@ -393,6 +393,7 @@ export default function DetallePedidoCliente() {
                 pedidoId={pedidoId!}
                 clienteLat={pedido.latitud}
                 clienteLng={pedido.longitud}
+                modoVista="compacto"
               />
             </div>
           </div>
@@ -400,27 +401,33 @@ export default function DetallePedidoCliente() {
 
         {/* Map Modal */}
         {showMapModal && (
-          <div className="map-modal">
-            <div className="map-modal-header">
-              <h3 className="map-modal-title">
-                <span>📍</span>
-                Ubicación del pedido
-              </h3>
-              <button
-                onClick={() => setShowMapModal(false)}
-                className="map-modal-close"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="map-modal-content">
-              {pedido && (
-                <MapaTracking
-                  pedidoId={pedidoId!}
-                  clienteLat={pedido.latitud}
-                  clienteLng={pedido.longitud}
-                />
-              )}
+          <div className="map-modal" onClick={() => setShowMapModal(false)}>
+            <div
+              className="map-modal-panel"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="map-modal-header">
+                <h3 className="map-modal-title">
+                  <span>📍</span>
+                  Ubicación del pedido
+                </h3>
+                <button
+                  onClick={() => setShowMapModal(false)}
+                  className="map-modal-close"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="map-modal-content">
+                {pedido && (
+                  <MapaTracking
+                    pedidoId={pedidoId!}
+                    clienteLat={pedido.latitud}
+                    clienteLng={pedido.longitud}
+                    modoVista="expandido"
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}

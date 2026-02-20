@@ -1,5 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polyline } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Marker,
+  InfoWindow,
+  Polyline,
+} from "@react-google-maps/api";
 import { supabase } from "../lib/supabase";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyD9ZMr4EAvpCy-AW5dg2IsSJeC9bPTUFOQ";
@@ -24,6 +30,7 @@ interface MapaTrackingProps {
   pedidoId: string;
   clienteLat: number;
   clienteLng: number;
+  modoVista?: "compacto" | "expandido";
 }
 
 const containerStyle = {
@@ -61,7 +68,9 @@ export default function MapaTracking({
   pedidoId,
   clienteLat,
   clienteLng,
+  modoVista = "expandido",
 }: MapaTrackingProps) {
+  const esCompacto = modoVista === "compacto";
   const [ubicaciones, setUbicaciones] = useState<UbicacionesTracking>({
     cliente: null,
     repartidor: null,
@@ -207,8 +216,8 @@ export default function MapaTracking({
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
-          maxHeight: "700px",
+          height: "100%",
+          minHeight: esCompacto ? "220px" : "420px",
           background: "#f8f9fa",
         }}
       >
@@ -224,7 +233,9 @@ export default function MapaTracking({
               margin: "0 auto 20px",
             }}
           ></div>
-          <p style={{ color: "#495057", fontSize: "16px", fontWeight: 500 }}>Cargando mapa...</p>
+          <p style={{ color: "#495057", fontSize: "16px", fontWeight: 500 }}>
+            Cargando mapa...
+          </p>
         </div>
       </div>
     );
@@ -242,7 +253,14 @@ export default function MapaTracking({
         }}
       >
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-        <p style={{ color: "#856404", fontWeight: 600, fontSize: "18px", marginBottom: "20px" }}>
+        <p
+          style={{
+            color: "#856404",
+            fontWeight: 600,
+            fontSize: "18px",
+            marginBottom: "20px",
+          }}
+        >
           {error}
         </p>
         <button
@@ -261,11 +279,13 @@ export default function MapaTracking({
           }}
           onMouseOver={(e) => {
             e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 6px 20px rgba(102, 126, 234, 0.5)";
+            e.currentTarget.style.boxShadow =
+              "0 6px 20px rgba(102, 126, 234, 0.5)";
           }}
           onMouseOut={(e) => {
             e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 4px 15px rgba(102, 126, 234, 0.3)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 15px rgba(102, 126, 234, 0.3)";
           }}
         >
           🔄 Reintentar
@@ -296,7 +316,9 @@ export default function MapaTracking({
   // Calcular tiempo estimado desde última actualización
   const minutosDesdeActualizacion = ubicaciones.repartidor
     ? Math.floor(
-        (Date.now() - new Date(ubicaciones.repartidor.actualizado_en).getTime()) / 60000
+        (Date.now() -
+          new Date(ubicaciones.repartidor.actualizado_en).getTime()) /
+          60000,
       )
     : 0;
 
@@ -340,6 +362,7 @@ export default function MapaTracking({
         gap: "0",
         width: "100%",
         height: "100%",
+        minHeight: 0,
         position: "relative",
         background: "white",
       }}
@@ -347,8 +370,8 @@ export default function MapaTracking({
       {/* Mapa de Google Maps - Más grande y visible */}
       <div
         style={{
-          height: "calc(100vh - 200px)",
-          minHeight: "600px",
+          height: "100%",
+          minHeight: esCompacto ? "220px" : "420px",
           width: "100%",
           position: "relative",
           background: "white",
@@ -363,16 +386,17 @@ export default function MapaTracking({
           options={{
             disableDefaultUI: false,
             zoomControl: true,
-            mapTypeControl: true, // Habilitar control de tipo de mapa (satélite, terreno, etc)
+            mapTypeControl: !esCompacto,
             mapTypeControlOptions: {
               style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
               position: google.maps.ControlPosition.TOP_RIGHT,
-              mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain']
+              mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain"],
             },
-            streetViewControl: true,
-            fullscreenControl: true,
-            rotateControl: true,
-            tilt: 45, // Habilitar vista 3D inclinada
+            streetViewControl: !esCompacto,
+            fullscreenControl: !esCompacto,
+            rotateControl: !esCompacto,
+            tilt: esCompacto ? 0 : 45,
+            gestureHandling: "greedy",
           }}
         >
           {/* Línea de ruta */}
@@ -412,11 +436,22 @@ export default function MapaTracking({
                   onCloseClick={() => setSelectedMarker(null)}
                 >
                   <div style={{ padding: "8px", textAlign: "center" }}>
-                    <div style={{ fontSize: "28px", marginBottom: "6px" }}>🍽️</div>
-                    <p style={{ fontWeight: 700, margin: "0 0 4px", fontSize: "15px", color: "#1f2937" }}>
+                    <div style={{ fontSize: "28px", marginBottom: "6px" }}>
+                      🍽️
+                    </div>
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        margin: "0 0 4px",
+                        fontSize: "15px",
+                        color: "#1f2937",
+                      }}
+                    >
                       Restaurante
                     </p>
-                    <p style={{ fontSize: "13px", margin: 0, color: "#6b7280" }}>
+                    <p
+                      style={{ fontSize: "13px", margin: 0, color: "#6b7280" }}
+                    >
                       Punto de origen
                     </p>
                   </div>
@@ -450,16 +485,39 @@ export default function MapaTracking({
                   onCloseClick={() => setSelectedMarker(null)}
                 >
                   <div style={{ padding: "8px", textAlign: "center" }}>
-                    <div style={{ fontSize: "28px", marginBottom: "6px" }}>🚚</div>
-                    <p style={{ fontWeight: 700, margin: "0 0 4px", fontSize: "15px", color: "#1f2937" }}>
+                    <div style={{ fontSize: "28px", marginBottom: "6px" }}>
+                      🚚
+                    </div>
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        margin: "0 0 4px",
+                        fontSize: "15px",
+                        color: "#1f2937",
+                      }}
+                    >
                       Repartidor
                     </p>
-                    {ubicaciones.repartidor.velocidad !== null && ubicaciones.repartidor.velocidad > 0 && (
-                      <p style={{ fontSize: "13px", margin: 0, color: "#3b82f6", fontWeight: 600 }}>
-                        {ubicaciones.repartidor.velocidad.toFixed(1)} km/h
-                      </p>
-                    )}
-                    <p style={{ fontSize: "12px", margin: "4px 0 0", color: "#6b7280" }}>
+                    {ubicaciones.repartidor.velocidad !== null &&
+                      ubicaciones.repartidor.velocidad > 0 && (
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            margin: 0,
+                            color: "#3b82f6",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {ubicaciones.repartidor.velocidad.toFixed(1)} km/h
+                        </p>
+                      )}
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        margin: "4px 0 0",
+                        color: "#6b7280",
+                      }}
+                    >
                       Actualizado hace {minutosDesdeActualizacion} min
                     </p>
                   </div>
@@ -491,7 +549,14 @@ export default function MapaTracking({
             >
               <div style={{ padding: "8px", textAlign: "center" }}>
                 <div style={{ fontSize: "28px", marginBottom: "6px" }}>🏠</div>
-                <p style={{ fontWeight: 700, margin: "0 0 4px", fontSize: "15px", color: "#1f2937" }}>
+                <p
+                  style={{
+                    fontWeight: 700,
+                    margin: "0 0 4px",
+                    fontSize: "15px",
+                    color: "#1f2937",
+                  }}
+                >
                   Tu ubicación
                 </p>
                 <p style={{ fontSize: "13px", margin: 0, color: "#6b7280" }}>
@@ -503,7 +568,7 @@ export default function MapaTracking({
         </GoogleMap>
 
         {/* Botón flotante para ver ubicación del repartidor */}
-        {ubicaciones.repartidor && (
+        {ubicaciones.repartidor && !esCompacto && (
           <button
             onClick={centrarEnRepartidor}
             style={{
@@ -527,11 +592,13 @@ export default function MapaTracking({
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = "translateY(-3px) scale(1.05)";
-              e.currentTarget.style.boxShadow = "0 12px 35px rgba(59, 130, 246, 0.6)";
+              e.currentTarget.style.boxShadow =
+                "0 12px 35px rgba(59, 130, 246, 0.6)";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = "translateY(0) scale(1)";
-              e.currentTarget.style.boxShadow = "0 8px 25px rgba(59, 130, 246, 0.4)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 25px rgba(59, 130, 246, 0.4)";
             }}
           >
             <span style={{ fontSize: "20px" }}>📍</span>
@@ -541,7 +608,7 @@ export default function MapaTracking({
       </div>
 
       {/* Información de tracking debajo del mapa */}
-      {ubicaciones.repartidor && (
+      {ubicaciones.repartidor && !esCompacto && (
         <div
           style={{
             background: "white",
@@ -583,7 +650,13 @@ export default function MapaTracking({
               >
                 Tu repartidor está en camino
               </h3>
-              <p style={{ margin: "4px 0 0", fontSize: "14px", color: "#6b7280" }}>
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: "14px",
+                  color: "#6b7280",
+                }}
+              >
                 Ubicación actualizada hace {minutosDesdeActualizacion} min
               </p>
             </div>
@@ -606,35 +679,74 @@ export default function MapaTracking({
               gap: "12px",
             }}
           >
-            {ubicaciones.repartidor.velocidad !== null && ubicaciones.repartidor.velocidad > 0 && (
-              <div
-                style={{
-                  background: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
-                  padding: "14px",
-                  borderRadius: "12px",
-                  border: "1px solid #93c5fd",
-                }}
-              >
-                <div style={{ fontSize: "20px", marginBottom: "6px" }}>🏃‍♂️</div>
-                <p style={{ fontSize: "11px", margin: 0, color: "#1e40af", fontWeight: 600 }}>Velocidad</p>
-                <p style={{ fontSize: "20px", fontWeight: 700, margin: "4px 0 0", color: "#1e3a8a" }}>
-                  {ubicaciones.repartidor.velocidad.toFixed(1)} <span style={{ fontSize: "12px" }}>km/h</span>
-                </p>
-              </div>
-            )}
+            {ubicaciones.repartidor.velocidad !== null &&
+              ubicaciones.repartidor.velocidad > 0 && (
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
+                    padding: "14px",
+                    borderRadius: "12px",
+                    border: "1px solid #93c5fd",
+                  }}
+                >
+                  <div style={{ fontSize: "20px", marginBottom: "6px" }}>
+                    🏃‍♂️
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      margin: 0,
+                      color: "#1e40af",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Velocidad
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: 700,
+                      margin: "4px 0 0",
+                      color: "#1e3a8a",
+                    }}
+                  >
+                    {ubicaciones.repartidor.velocidad.toFixed(1)}{" "}
+                    <span style={{ fontSize: "12px" }}>km/h</span>
+                  </p>
+                </div>
+              )}
             {ubicaciones.repartidor.precision_metros !== null && (
               <div
                 style={{
-                  background: "linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)",
+                  background:
+                    "linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)",
                   padding: "14px",
                   borderRadius: "12px",
                   border: "1px solid #a5b4fc",
                 }}
               >
                 <div style={{ fontSize: "20px", marginBottom: "6px" }}>🎯</div>
-                <p style={{ fontSize: "11px", margin: 0, color: "#4338ca", fontWeight: 600 }}>Precisión</p>
-                <p style={{ fontSize: "20px", fontWeight: 700, margin: "4px 0 0", color: "#3730a3" }}>
-                  {ubicaciones.repartidor.precision_metros} <span style={{ fontSize: "12px" }}>m</span>
+                <p
+                  style={{
+                    fontSize: "11px",
+                    margin: 0,
+                    color: "#4338ca",
+                    fontWeight: 600,
+                  }}
+                >
+                  Precisión
+                </p>
+                <p
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    margin: "4px 0 0",
+                    color: "#3730a3",
+                  }}
+                >
+                  {ubicaciones.repartidor.precision_metros}{" "}
+                  <span style={{ fontSize: "12px" }}>m</span>
                 </p>
               </div>
             )}

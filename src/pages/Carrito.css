@@ -50,7 +50,6 @@
 }
 
 @keyframes bounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -483,6 +482,18 @@
   box-shadow: 0 4px 20px rgba(79, 70, 229, 0.2);
 }
 
+.payment-option.disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.payment-option.disabled:hover {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
 .payment-icon {
   font-size: 2rem;
   flex-shrink: 0;
@@ -505,6 +516,18 @@
   font-weight: 600;
 }
 
+.payment-soon {
+  margin-top: 6px;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7c2d12;
+  background: #ffedd5;
+  border: 1px solid #fdba74;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
 .payment-check {
   width: 32px;
   height: 32px;
@@ -517,6 +540,76 @@
   font-size: 1.125rem;
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.transferencia-detalles {
+  margin-top: 14px;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  background: #f8fbff;
+  padding: 14px;
+}
+
+.transferencia-title {
+  margin: 0 0 10px;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.transferencia-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.cuentas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cuenta-item {
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.cuenta-banco {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.cuenta-texto {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.whatsapp-comprobante-btn {
+  margin-top: 12px;
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  padding: 11px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.875rem;
+  color: #ffffff;
+  background: #16a34a;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.whatsapp-comprobante-btn:hover {
+  background: #15803d;
 }
 
 /* Summary */

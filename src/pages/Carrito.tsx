@@ -9,6 +9,34 @@ import { useInfoModal } from "../hooks/useInfoModal";
 import ConfirmModal from "../components/ConfirmModal";
 import "./Carrito.css";
 
+const toNumberOrNull = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const calcularDistanciaKm = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number => {
+  const radioTierraKm = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return radioTierraKm * c;
+};
+
 interface ItemCarrito {
   id: string;
   platillo_id: string;
@@ -39,6 +67,13 @@ interface ResumenCarrito {
   tiempo_entrega_estimado: number;
 }
 
+interface CuentaBancaria {
+  id: string;
+  nombre_titular: string;
+  banco: string;
+  cuenta: string;
+}
+
 export default function Carrito() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
@@ -49,16 +84,165 @@ export default function Carrito() {
   const { modalState, showWarning, showSuccess, showError, closeModal } =
     useInfoModal();
   const [showConfirmVaciar, setShowConfirmVaciar] = useState(false);
+  const [costoEnvioCalculado, setCostoEnvioCalculado] = useState(0);
+  const [distanciaActualKm, setDistanciaActualKm] = useState<number | null>(
+    null,
+  );
 
   const [direccion, setDireccion] = useState("");
   const [notas, setNotas] = useState("");
   const [metodoPago, setMetodoPago] = useState<
     "tarjeta" | "transferencia" | "efectivo"
   >("efectivo");
+  const [cuentasBancarias, setCuentasBancarias] = useState<CuentaBancaria[]>(
+    [],
+  );
+  const [cargandoCuentas, setCargandoCuentas] = useState(false);
+
+  const tarjetaHabilitada = false;
+  const telefonoWhatsAppComprobantes = "50499990000";
 
   useEffect(() => {
     cargarCarrito();
   }, []);
+
+  useEffect(() => {
+    cargarCuentasBancarias();
+  }, []);
+
+  const cargarCuentasBancarias = async () => {
+    setCargandoCuentas(true);
+    try {
+      const { data, error } = await supabase
+        .from("cuentas_bancarias")
+        .select("id, nombre_titular, banco, cuenta")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setCuentasBancarias((data as CuentaBancaria[]) || []);
+    } catch (error) {
+      console.error("Error al cargar cuentas bancarias:", error);
+      setCuentasBancarias([]);
+    } finally {
+      setCargandoCuentas(false);
+    }
+  };
+
+  const construirEnlaceWhatsApp = () => {
+    const telefonoLimpio = telefonoWhatsAppComprobantes.replace(/\D/g, "");
+    const mensaje = encodeURIComponent(
+      "Hola, adjunto mi comprobante de transferencia para mi pedido.",
+    );
+    return `https://wa.me/${telefonoLimpio}?text=${mensaje}`;
+  };
+
+  const obtenerUbicacionUsuario = () =>
+    new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocalización no disponible"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => reject(error),
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        },
+      );
+    });
+
+  const calcularCostoEnvioDinamico = async (costoBaseVista: number) => {
+    if (!usuario?.id) {
+      setCostoEnvioCalculado(costoBaseVista);
+      setDistanciaActualKm(null);
+      return;
+    }
+
+    try {
+      const ubicacionUsuario = await obtenerUbicacionUsuario();
+
+      const { data: restoCarrito, error: restoCarritoError } = await supabase
+        .from("carrito")
+        .select("restaurante_id")
+        .eq("usuario_id", usuario.id)
+        .limit(1)
+        .single();
+
+      if (restoCarritoError || !restoCarrito?.restaurante_id) {
+        setCostoEnvioCalculado(costoBaseVista);
+        setDistanciaActualKm(null);
+        return;
+      }
+
+      const { data: restauranteData, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("*")
+        .eq("id", restoCarrito.restaurante_id)
+        .single();
+
+      if (restauranteError || !restauranteData) {
+        setCostoEnvioCalculado(costoBaseVista);
+        setDistanciaActualKm(null);
+        return;
+      }
+
+      const costoBase =
+        toNumberOrNull((restauranteData as any).costo_envio) ?? costoBaseVista;
+      const precioExtraPorKm =
+        toNumberOrNull((restauranteData as any).precio_extra_por_km) ?? 0;
+      const distanciaMinimaKm =
+        toNumberOrNull((restauranteData as any).distancia_minima_km) ?? 0;
+      const latitudRestaurante = toNumberOrNull(
+        (restauranteData as any).latitud,
+      );
+      const longitudRestaurante = toNumberOrNull(
+        (restauranteData as any).longitud,
+      );
+
+      if (
+        precioExtraPorKm <= 0 ||
+        latitudRestaurante === null ||
+        longitudRestaurante === null
+      ) {
+        setCostoEnvioCalculado(costoBase);
+        if (latitudRestaurante !== null && longitudRestaurante !== null) {
+          const distanciaKm = calcularDistanciaKm(
+            ubicacionUsuario.latitude,
+            ubicacionUsuario.longitude,
+            latitudRestaurante,
+            longitudRestaurante,
+          );
+          setDistanciaActualKm(Number(distanciaKm.toFixed(2)));
+        } else {
+          setDistanciaActualKm(null);
+        }
+        return;
+      }
+
+      const distanciaKm = calcularDistanciaKm(
+        ubicacionUsuario.latitude,
+        ubicacionUsuario.longitude,
+        latitudRestaurante,
+        longitudRestaurante,
+      );
+      setDistanciaActualKm(Number(distanciaKm.toFixed(2)));
+
+      const distanciaExtraKm = Math.max(0, distanciaKm - distanciaMinimaKm);
+      const costoFinal = costoBase + distanciaExtraKm * precioExtraPorKm;
+      setCostoEnvioCalculado(Number(costoFinal.toFixed(2)));
+    } catch {
+      setCostoEnvioCalculado(costoBaseVista);
+      setDistanciaActualKm(null);
+    }
+  };
 
   const cargarCarrito = async () => {
     if (!usuario?.id) return;
@@ -81,6 +265,7 @@ export default function Carrito() {
 
       setItems(itemsData || []);
       setResumen(resumenData);
+      await calcularCostoEnvioDinamico(resumenData?.costo_envio || 0);
     } catch (error) {
       console.error("Error al cargar carrito:", error);
     } finally {
@@ -150,18 +335,21 @@ export default function Carrito() {
       return;
     }
 
+    if (metodoPago === "tarjeta") {
+      showWarning("Pago con tarjeta estará disponible muy pronto");
+      return;
+    }
+
     setCreandoPedido(true);
     try {
       const metodoPagoTexto =
-        metodoPago === "tarjeta"
-          ? "Tarjeta"
-          : metodoPago === "transferencia"
+        metodoPago === "transferencia"
             ? "Transferencia"
             : "Efectivo";
 
       // Calcular total a partir de los items y costo de envío
       const productosTotal = items.reduce((s, it) => s + (it.subtotal || 0), 0);
-      const total = (resumen?.costo_envio || 0) + productosTotal;
+      const total = costoEnvioCalculado + productosTotal;
 
       // Obtener restaurante_id desde la tabla carrito (por seguridad)
       const { data: restos, error: restosError } = await supabase
@@ -190,7 +378,7 @@ export default function Carrito() {
           {
             usuario_id: usuario.id,
             restaurante_id: restaurante_id,
-            costo_envio: resumen?.costo_envio || 0,
+            costo_envio: costoEnvioCalculado,
             numero_pedido,
             total,
             estado: "pendiente",
@@ -303,6 +491,9 @@ export default function Carrito() {
     );
   }
 
+  const subtotalProductos = resumen?.subtotal_productos ?? 0;
+  const totalCarrito = subtotalProductos + costoEnvioCalculado;
+
   return (
     <div className="cart-page">
       <Header />
@@ -351,7 +542,13 @@ export default function Carrito() {
                   <p className="banner-meta">
                     <span>⏱️ {resumen.tiempo_entrega_estimado} min</span>
                     <span>•</span>
-                    <span>🚚 L {resumen.costo_envio.toFixed(2)}</span>
+                    {distanciaActualKm !== null && (
+                      <>
+                        <span>📍 {distanciaActualKm.toFixed(2)} km</span>
+                        <span>•</span>
+                      </>
+                    )}
+                    <span>🚚 L {costoEnvioCalculado.toFixed(2)}</span>
                   </p>
                 </div>
               </motion.div>
@@ -491,15 +688,21 @@ export default function Carrito() {
 
                 <div className="payment-options">
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setMetodoPago("tarjeta")}
-                    className={`payment-option ${metodoPago === "tarjeta" ? "active" : ""}`}
+                    whileHover={tarjetaHabilitada ? { scale: 1.02 } : undefined}
+                    whileTap={tarjetaHabilitada ? { scale: 0.98 } : undefined}
+                    onClick={() => {
+                      if (!tarjetaHabilitada) return;
+                      setMetodoPago("tarjeta");
+                    }}
+                    className={`payment-option ${metodoPago === "tarjeta" ? "active" : ""} ${!tarjetaHabilitada ? "disabled" : ""}`}
                   >
                     <div className="payment-icon">💳</div>
                     <div className="payment-text">
                       <div className="payment-name">Tarjeta</div>
                       <div className="payment-desc">Débito o Crédito</div>
+                      {!tarjetaHabilitada && (
+                        <div className="payment-soon">Muy pronto</div>
+                      )}
                     </div>
                     {metodoPago === "tarjeta" && (
                       <div className="payment-check">✓</div>
@@ -538,6 +741,44 @@ export default function Carrito() {
                     )}
                   </motion.div>
                 </div>
+
+                {metodoPago === "transferencia" && (
+                  <div className="transferencia-detalles">
+                    <p className="transferencia-title">Cuentas para depósito</p>
+
+                    {cargandoCuentas ? (
+                      <p className="transferencia-empty">Cargando cuentas...</p>
+                    ) : cuentasBancarias.length === 0 ? (
+                      <p className="transferencia-empty">
+                        No hay cuentas configuradas.
+                      </p>
+                    ) : (
+                      <div className="cuentas-lista">
+                        {cuentasBancarias.map((cuenta) => (
+                          <div key={cuenta.id} className="cuenta-item">
+                            <p className="cuenta-banco">{cuenta.banco}</p>
+                            <p className="cuenta-texto">
+                              Titular: {cuenta.nombre_titular}
+                            </p>
+                            <p className="cuenta-texto">
+                              Cuenta: {cuenta.cuenta}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <a
+                      href={construirEnlaceWhatsApp()}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="whatsapp-comprobante-btn"
+                    >
+                      Enviar comprobante por WhatsApp (
+                      {telefonoWhatsAppComprobantes})
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="section-divider" />
@@ -551,14 +792,14 @@ export default function Carrito() {
                     Subtotal ({resumen?.total_items} productos)
                   </span>
                   <span className="summary-value">
-                    L {resumen?.subtotal_productos.toFixed(2)}
+                    L {subtotalProductos.toFixed(2)}
                   </span>
                 </div>
 
                 <div className="summary-row">
                   <span className="summary-label">Costo de envío</span>
                   <span className="summary-value">
-                    L {resumen?.costo_envio.toFixed(2)}
+                    L {costoEnvioCalculado.toFixed(2)}
                   </span>
                 </div>
 
@@ -567,13 +808,9 @@ export default function Carrito() {
                 <div className="total-row">
                   <span className="total-label">Total</span>
                   <span className="total-value">
-                    L {resumen?.total_carrito.toFixed(2)}
+                    L {totalCarrito.toFixed(2)}
                   </span>
                 </div>
-
-                
-                
-                
               </div>
 
               {/* Checkout Button */}
