@@ -266,10 +266,10 @@ function AppContent() {
   const { usuario } = useAuth();
 
   return (
-    <>
+    <div className={usuario ? "app-shell with-bottom-nav" : "app-shell"}>
       <AppRoutes />
       {usuario && <BottomNav />}
-    </>
+    </div>
   );
 }
 

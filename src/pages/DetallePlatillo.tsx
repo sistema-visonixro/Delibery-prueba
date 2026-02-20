@@ -324,14 +324,14 @@ export default function DetallePlatillo() {
       <div
         style={{
           position: "fixed",
-          bottom: 0,
+          bottom: "calc(108px + env(safe-area-inset-bottom) + 8px)",
           left: 0,
           right: 0,
           background: "#fff",
           padding: "20px",
           borderTop: "1px solid #f3f4f6",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.05)",
-          zIndex: 100,
+          zIndex: 10030,
         }}
       >
         <div style={{ maxWidth: 600, margin: "0 auto" }}>

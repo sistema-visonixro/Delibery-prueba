@@ -420,13 +420,16 @@ export default function HomeClient() {
                   </div>
 
                   <div className="active-order-bottom">
-                    <span className={`active-order-status status-${pedido.estado}`}>
+                    <span
+                      className={`active-order-status status-${pedido.estado}`}
+                    >
                       <span>{obtenerIconoEstado(pedido.estado)}</span>
                       <span>{obtenerTextoEstado(pedido.estado)}</span>
                     </span>
                     <span className="active-order-meta">
-                      {pedido.total_items} item{pedido.total_items > 1 ? "s" : ""}
-                      • {formatearFechaCompacta(pedido.creado_en)}
+                      {pedido.total_items} item
+                      {pedido.total_items > 1 ? "s" : ""}•{" "}
+                      {formatearFechaCompacta(pedido.creado_en)}
                     </span>
                   </div>
                 </article>
@@ -448,10 +451,7 @@ export default function HomeClient() {
               className="search-input"
             />
             {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="search-clear"
-              >
+              <button onClick={() => setSearch("")} className="search-clear">
                 ✕
               </button>
             )}
@@ -534,9 +534,13 @@ export default function HomeClient() {
                         {restaurante.emoji || "🍽️"}
                       </span>
                       <div>
-                        <h3 className="nearby-card-title">{restaurante.nombre}</h3>
+                        <h3 className="nearby-card-title">
+                          {restaurante.nombre}
+                        </h3>
                         <p className="nearby-card-subtitle">
-                          {restaurante.tiempo_entrega_min || 30} min · L {Number(restaurante.costo_envio || 0).toFixed(2)} envío
+                          {restaurante.tiempo_entrega_min || 30} min · L{" "}
+                          {Number(restaurante.costo_envio || 0).toFixed(2)}{" "}
+                          envío
                         </p>
                       </div>
                     </div>

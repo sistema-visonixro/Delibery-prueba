@@ -1,1 +1,11 @@
 /* App.css - Estilos globales de la aplicación */
+
+.app-shell {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.app-shell.with-bottom-nav {
+  padding-bottom: calc(108px + env(safe-area-inset-bottom));
+  background: #ffffff;
+}
