@@ -98,9 +98,10 @@ export default function Carrito() {
     [],
   );
   const [cargandoCuentas, setCargandoCuentas] = useState(false);
+  const [telefonoWhatsAppComprobantes, setTelefonoWhatsAppComprobantes] =
+    useState("");
 
   const tarjetaHabilitada = false;
-  const telefonoWhatsAppComprobantes = "50499990000";
 
   useEffect(() => {
     cargarCarrito();
@@ -108,6 +109,7 @@ export default function Carrito() {
 
   useEffect(() => {
     cargarCuentasBancarias();
+    cargarTelefonoWhatsApp();
   }, []);
 
   const cargarCuentasBancarias = async () => {
@@ -128,12 +130,41 @@ export default function Carrito() {
     }
   };
 
+  const cargarTelefonoWhatsApp = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("tel")
+        .select("id, numero")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (error) throw error;
+      setTelefonoWhatsAppComprobantes(String(data?.numero || ""));
+    } catch (error) {
+      console.error("Error al cargar teléfono de comprobantes:", error);
+      setTelefonoWhatsAppComprobantes("");
+    }
+  };
+
   const construirEnlaceWhatsApp = () => {
     const telefonoLimpio = telefonoWhatsAppComprobantes.replace(/\D/g, "");
+    if (!telefonoLimpio) return null;
+
+    const telefonoConCodigo =
+      telefonoLimpio.length === 8 ? `504${telefonoLimpio}` : telefonoLimpio;
+
     const mensaje = encodeURIComponent(
       "Hola, adjunto mi comprobante de transferencia para mi pedido.",
     );
-    return `https://wa.me/${telefonoLimpio}?text=${mensaje}`;
+    return `https://wa.me/${telefonoConCodigo}?text=${mensaje}`;
+  };
+
+  const telefonoWhatsAppMostrado = () => {
+    const telefonoLimpio = telefonoWhatsAppComprobantes.replace(/\D/g, "");
+    if (!telefonoLimpio) return "Número no configurado";
+    return telefonoLimpio.length === 8
+      ? `+504 ${telefonoLimpio}`
+      : `+${telefonoLimpio}`;
   };
 
   const obtenerUbicacionUsuario = () =>
@@ -343,9 +374,7 @@ export default function Carrito() {
     setCreandoPedido(true);
     try {
       const metodoPagoTexto =
-        metodoPago === "transferencia"
-            ? "Transferencia"
-            : "Efectivo";
+        metodoPago === "transferencia" ? "Transferencia" : "Efectivo";
 
       // Calcular total a partir de los items y costo de envío
       const productosTotal = items.reduce((s, it) => s + (it.subtotal || 0), 0);
@@ -493,6 +522,7 @@ export default function Carrito() {
 
   const subtotalProductos = resumen?.subtotal_productos ?? 0;
   const totalCarrito = subtotalProductos + costoEnvioCalculado;
+  const enlaceWhatsApp = construirEnlaceWhatsApp();
 
   return (
     <div className="cart-page">
@@ -769,13 +799,23 @@ export default function Carrito() {
                     )}
 
                     <a
-                      href={construirEnlaceWhatsApp()}
+                      href={enlaceWhatsApp || "#"}
+                      onClick={(e) => {
+                        if (!enlaceWhatsApp) e.preventDefault();
+                      }}
                       target="_blank"
                       rel="noreferrer"
-                      className="whatsapp-comprobante-btn"
+                      className={`whatsapp-comprobante-btn ${!enlaceWhatsApp ? "disabled" : ""}`}
                     >
-                      Enviar comprobante por WhatsApp (
-                      {telefonoWhatsAppComprobantes})
+                      <span className="whatsapp-comprobante-icon">📲</span>
+                      <span className="whatsapp-comprobante-content">
+                        <span className="whatsapp-comprobante-title">
+                          Enviar comprobante por WhatsApp
+                        </span>
+                        <span className="whatsapp-comprobante-phone">
+                          {telefonoWhatsAppMostrado()}
+                        </span>
+                      </span>
                     </a>
                   </div>
                 )}
