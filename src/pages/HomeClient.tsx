@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import RestaurantCarousel from "../components/RestaurantCarousel";
 import PlatillosCarousel from "../components/PlatillosCarousel";
@@ -16,14 +17,8 @@ interface Restaurante {
   calificacion: number;
   tiempo_entrega_min: number;
   costo_envio: number;
-}
-
-interface Categoria {
-  id: string;
-  nombre: string;
-  emoji: string;
-  color_gradiente_inicio: string;
-  color_gradiente_fin: string;
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
 interface Platillo {
@@ -37,11 +32,34 @@ interface Platillo {
   restaurante?: { id: string; nombre: string } | null;
 }
 
+interface PedidoHome {
+  pedido_id: string;
+  numero_pedido: string;
+  total: number;
+  estado: string;
+  restaurante_nombre: string;
+  restaurante_emoji: string;
+  total_items: number;
+  creado_en: string;
+}
+
+interface RestauranteCercano extends Restaurante {
+  distanciaKm: number;
+}
+
 export default function HomeClient() {
+  const { usuario } = useAuth();
   const navigate = useNavigate();
   const [restaurantes, setRestaurantes] = useState<Restaurante[]>([]);
   const [platillos, setPlatillos] = useState<Platillo[]>([]);
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [restaurantesCercanos, setRestaurantesCercanos] = useState<
+    RestauranteCercano[]
+  >([]);
+  const [ubicacionActual, setUbicacionActual] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [pedidosActivos, setPedidosActivos] = useState<PedidoHome[]>([]);
   const [, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<Array<any>>([]);
@@ -74,46 +92,17 @@ export default function HomeClient() {
             tiempo_entrega_min: r.tiempo_entrega_min
               ? Number(r.tiempo_entrega_min)
               : 0,
+            latitud:
+              typeof r.latitud === "string"
+                ? parseFloat(r.latitud) || null
+                : (r.latitud ?? null),
+            longitud:
+              typeof r.longitud === "string"
+                ? parseFloat(r.longitud) || null
+                : (r.longitud ?? null),
           }));
 
           setRestaurantes(normalized);
-        }
-
-        const { data: categoriasData, error: errorCategorias } = await supabase
-          .from("categorias")
-          .select("*")
-          .order("orden", { ascending: true });
-
-        if (errorCategorias) {
-          console.error("Error cargando categorías:", errorCategorias);
-          setCategorias([
-            {
-              id: "1",
-              nombre: "Comidas",
-              emoji: "🍽️",
-              color_gradiente_inicio: "#f093fb",
-              color_gradiente_fin: "#f5576c",
-            },
-            {
-              id: "2",
-              nombre: "Bebidas",
-              emoji: "🥤",
-              color_gradiente_inicio: "#667eea",
-              color_gradiente_fin: "#764ba2",
-            },
-            {
-              id: "3",
-              nombre: "Postres",
-              emoji: "🍰",
-              color_gradiente_inicio: "#fa709a",
-              color_gradiente_fin: "#fee140",
-            },
-          ]);
-        } else {
-          const categoriasFiltradas = (categoriasData || []).filter(
-            (cat) => cat.nombre.toLowerCase() !== "mandaditos",
-          );
-          setCategorias(categoriasFiltradas);
         }
 
         const { data: platillosData, error: errorPlatillos } = await supabase
@@ -147,7 +136,6 @@ export default function HomeClient() {
       } catch (error) {
         console.error("Error general:", error);
         setRestaurantes([]);
-        setCategorias([]);
         setPlatillos([]);
       } finally {
         setLoading(false);
@@ -189,6 +177,186 @@ export default function HomeClient() {
     setSuggestions([...restMatches, ...platMatches]);
   }, [search, restaurantes, platillos]);
 
+  useEffect(() => {
+    if (!usuario?.id) return;
+
+    const estadosActivos = [
+      "pendiente",
+      "confirmado",
+      "en_preparacion",
+      "listo",
+      "en_camino",
+    ];
+
+    const cargarPedidosActivos = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("vista_pedidos_cliente")
+          .select(
+            "pedido_id,numero_pedido,total,estado,restaurante_nombre,restaurante_emoji,total_items,creado_en",
+          )
+          .eq("usuario_id", usuario.id)
+          .in("estado", estadosActivos)
+          .order("creado_en", { ascending: false })
+          .limit(4);
+
+        if (error) throw error;
+        setPedidosActivos((data as PedidoHome[]) || []);
+      } catch (error) {
+        console.error("Error cargando pedidos activos en home:", error);
+        setPedidosActivos([]);
+      }
+    };
+
+    cargarPedidosActivos();
+
+    const channel = supabase
+      .channel(`home-pedidos-${usuario.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "pedidos",
+          filter: `usuario_id=eq.${usuario.id}`,
+        },
+        () => {
+          cargarPedidosActivos();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [usuario?.id]);
+
+  useEffect(() => {
+    if (!usuario?.id) return;
+
+    const actualizarUbicacionCliente = async () => {
+      if (!("geolocation" in navigator)) return;
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          setUbicacionActual({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+
+          const { error } = await supabase.from("ubicacion_real").upsert(
+            {
+              usuario_id: usuario.id,
+              latitud: position.coords.latitude,
+              longitud: position.coords.longitude,
+              velocidad: position.coords.speed,
+              precision_metros: Math.round(position.coords.accuracy),
+              heading: position.coords.heading,
+              actualizado_en: new Date().toISOString(),
+            },
+            {
+              onConflict: "usuario_id",
+            },
+          );
+
+          if (error) {
+            console.error("Error actualizando ubicación en home:", error);
+          }
+        },
+        () => {
+          // evitar ruido de logs continuo si usuario niega permisos
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        },
+      );
+    };
+
+    actualizarUbicacionCliente();
+    const intervalo = setInterval(actualizarUbicacionCliente, 5000);
+
+    return () => {
+      clearInterval(intervalo);
+    };
+  }, [usuario?.id]);
+
+  const calcularDistanciaKm = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ) => {
+    const radioTierraKm = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return radioTierraKm * c;
+  };
+
+  useEffect(() => {
+    if (!ubicacionActual || restaurantes.length === 0) {
+      setRestaurantesCercanos([]);
+      return;
+    }
+
+    const conDistancia = restaurantes
+      .filter((r) => r.latitud !== null && r.longitud !== null)
+      .map((r) => ({
+        ...r,
+        distanciaKm: calcularDistanciaKm(
+          ubicacionActual.latitude,
+          ubicacionActual.longitude,
+          Number(r.latitud),
+          Number(r.longitud),
+        ),
+      }))
+      .sort((a, b) => a.distanciaKm - b.distanciaKm)
+      .slice(0, 6);
+
+    setRestaurantesCercanos(conDistancia);
+  }, [restaurantes, ubicacionActual]);
+
+  const obtenerTextoEstado = (estado: string) => {
+    const textos: Record<string, string> = {
+      pendiente: "Pendiente",
+      confirmado: "Confirmado",
+      en_preparacion: "Preparando",
+      listo: "Listo",
+      en_camino: "En camino",
+    };
+
+    return textos[estado] || estado;
+  };
+
+  const obtenerIconoEstado = (estado: string) => {
+    const iconos: Record<string, string> = {
+      pendiente: "⏳",
+      confirmado: "✅",
+      en_preparacion: "👨‍🍳",
+      listo: "📦",
+      en_camino: "🚚",
+    };
+
+    return iconos[estado] || "📋";
+  };
+
+  const formatearFechaCompacta = (fecha: string) =>
+    new Date(fecha).toLocaleString("es-HN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "short",
+    });
+
   return (
     <div className="home-page">
       <Header />
@@ -208,6 +376,64 @@ export default function HomeClient() {
             <div className="hero-emoji">🍕</div>
           </div>
         </section>
+
+        {pedidosActivos.length > 0 && (
+          <section className="active-orders-section">
+            <div className="section-header active-orders-header">
+              <h2 className="section-title active-orders-title">
+                <span className="section-icon">📦</span>
+                Tus pedidos activos
+              </h2>
+              <button
+                className="active-orders-link"
+                onClick={() => navigate("/pedidos")}
+              >
+                Ver todos
+              </button>
+            </div>
+
+            <div className="active-orders-grid">
+              {pedidosActivos.map((pedido) => (
+                <article
+                  key={pedido.pedido_id}
+                  className="active-order-card"
+                  onClick={() => navigate(`/pedido/${pedido.pedido_id}`)}
+                >
+                  <div className="active-order-top">
+                    <div className="active-order-restaurant">
+                      <span className="active-order-emoji">
+                        {pedido.restaurante_emoji || "🍽️"}
+                      </span>
+                      <div>
+                        <h3 className="active-order-name">
+                          {pedido.restaurante_nombre}
+                        </h3>
+                        <p className="active-order-number">
+                          Pedido #{pedido.numero_pedido}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="active-order-total">
+                      L {Number(pedido.total || 0).toFixed(2)}
+                    </div>
+                  </div>
+
+                  <div className="active-order-bottom">
+                    <span className={`active-order-status status-${pedido.estado}`}>
+                      <span>{obtenerIconoEstado(pedido.estado)}</span>
+                      <span>{obtenerTextoEstado(pedido.estado)}</span>
+                    </span>
+                    <span className="active-order-meta">
+                      {pedido.total_items} item{pedido.total_items > 1 ? "s" : ""}
+                      • {formatearFechaCompacta(pedido.creado_en)}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Search Bar Mejorada */}
         <div className="search-container">
@@ -276,47 +502,60 @@ export default function HomeClient() {
           platillos={platillos.sort(() => Math.random() - 0.5)}
         />
 
-        {/* Categorías Section */}
-        <section className="categories-section">
+        {/* Restaurantes Cerca de Ti */}
+        <section className="nearby-restaurants-section">
           <div className="section-header">
             <h2 className="section-title">
               <span className="section-icon">🍽️</span>
-              ¿Qué se te antoja hoy?
+              Restaurantes cerca de ti
             </h2>
             <p className="section-subtitle">
-              Explora nuestras categorías más populares
+              Te mostramos los más cercanos según tu ubicación actual
             </p>
           </div>
 
-          <div className="categories-grid">
-            {categorias.length > 0 ? (
-              categorias.map((categoria, index) => (
-                <div
-                  key={categoria.id}
-                  onClick={() => navigate(`/categoria/${categoria.id}`)}
-                  className="category-card"
-                  style={{
-                    background: `linear-gradient(135deg, ${categoria.color_gradiente_inicio} 0%, ${categoria.color_gradiente_fin} 100%)`,
-                    animationDelay: `${index * 0.1}s`,
-                  }}
+          <div className="nearby-restaurants-grid">
+            {!ubicacionActual ? (
+              <article className="nearby-restaurant-card nearby-empty-card">
+                <p className="nearby-empty-text">
+                  Activa tu ubicación para ver restaurantes cercanos.
+                </p>
+              </article>
+            ) : restaurantesCercanos.length > 0 ? (
+              restaurantesCercanos.map((restaurante) => (
+                <article
+                  key={restaurante.id}
+                  onClick={() => navigate(`/restaurante/${restaurante.id}`)}
+                  className="nearby-restaurant-card"
                 >
-                  <div className="category-emoji-bg">
-                    {categoria.emoji}
-                  </div>
-                  <div className="category-content">
-                    <div className="category-emoji-main">
-                      {categoria.emoji}
+                  <div className="nearby-card-top">
+                    <div className="nearby-card-title-wrap">
+                      <span className="nearby-card-emoji">
+                        {restaurante.emoji || "🍽️"}
+                      </span>
+                      <div>
+                        <h3 className="nearby-card-title">{restaurante.nombre}</h3>
+                        <p className="nearby-card-subtitle">
+                          {restaurante.tiempo_entrega_min || 30} min · L {Number(restaurante.costo_envio || 0).toFixed(2)} envío
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="category-name">{categoria.nombre}</h3>
-                    <div className="category-arrow">→</div>
+                    <span className="nearby-distance-badge">
+                      {restaurante.distanciaKm.toFixed(1)} km
+                    </span>
                   </div>
-                </div>
+
+                  <p className="nearby-card-description">
+                    {restaurante.descripcion || "Restaurante disponible"}
+                  </p>
+                </article>
               ))
             ) : (
-              <div className="category-card category-loading">
-                <div className="loading-spinner"></div>
-                <p>Cargando categorías...</p>
-              </div>
+              <article className="nearby-restaurant-card nearby-empty-card">
+                <p className="nearby-empty-text">
+                  Aún no hay restaurantes con ubicación configurada.
+                </p>
+              </article>
             )}
           </div>
         </section>
