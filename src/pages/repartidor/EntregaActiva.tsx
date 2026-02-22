@@ -71,7 +71,7 @@ export default function EntregaActiva() {
     if (!pedidoId || trackingActivo) return;
 
     console.log("Iniciando tracking GPS...");
-    const detener = iniciarTrackingGPS(repartidorId, pedidoId, 60); // Actualizar cada 60 segundos
+    const detener = iniciarTrackingGPS(repartidorId, pedidoId, 5); // Actualizar cada 5 segundos
     detenerTrackingRef.current = detener;
     setTrackingActivo(true);
   };

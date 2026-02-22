@@ -122,8 +122,8 @@ export async function actualizarUbicacion(
       p_latitud: latitud,
       p_longitud: longitud,
       p_pedido_id: pedidoId || null,
-      p_velocidad: velocidad || null,
-      p_precision: precision || null,
+      p_velocidad: velocidad ? Math.round(velocidad * 100) / 100 : null, // Redondear a 2 decimales
+      p_precision: precision ? Math.round(precision) : null, // Convertir a entero
     }
   );
 
